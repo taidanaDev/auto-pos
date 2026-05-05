@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="fw-bold mb-3">Admin Dashboard</h2>
+
+<p class="text-muted">
+    Welcome, {{ user.first_name }} {{ user.last_name }}.
+</p>
+
+<div class="row g-3">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Student Registration</h5>
+                <p>Register students manually or through CSV import.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Manage Curriculum</h5>
+                <p>Upload and manage official curriculum records.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Course Requirements</h5>
+                <p>Manage prerequisites, co-requisites, and course availability.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Student Progress</h5>
+                <p>View student academic records and completion status.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Manual POS Adjustment</h5>
+                <p>Adjust generated POS plans for special cases.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">POS Reports</h5>
+                <p>Preview and generate POS reports.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

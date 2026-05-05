@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-md-7">
+        <h1 class="fw-bold">Auto-POS</h1>
+        <p class="lead">
+            Automated System for Program of Study Evaluation and Rearrangement
+        </p>
+
+        <p>
+            This system helps students track academic progress, input course grades,
+            view remaining courses, and generate a rearranged POS for reference.
+        </p>
+
+        <a href="{% url 'login' %}" class="btn btn-danger">
+            Log In
+        </a>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold">System Features</h5>
+                <ul class="mb-0">
+                    <li>Student academic progress tracking</li>
+                    <li>Course grade recording</li>
+                    <li>Failed and remaining course detection</li>
+                    <li>POS rearrangement</li>
+                    <li>PDF-ready POS output</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

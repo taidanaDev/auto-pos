@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="fw-bold mb-3">Student Dashboard</h2>
+
+<p class="text-muted">
+    Welcome, {{ user.first_name }} {{ user.last_name }}.
+</p>
+
+<div class="row g-3">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">View POS</h5>
+                <p>View your current Program of Study.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Input Grades</h5>
+                <p>Input grades per course for academic progress tracking.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Academic Progress</h5>
+                <p>Check completed, failed, and remaining courses.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Rearrange POS</h5>
+                <p>Generate an adjusted POS based on your course records.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold">Download POS PDF</h5>
+                <p>Preview and download a formatted POS document.</p>
+                <a href="#" class="btn btn-outline-danger btn-sm disabled">
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
