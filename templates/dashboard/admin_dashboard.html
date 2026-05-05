@@ -14,8 +14,11 @@
             <div class="card-body">
                 <h5 class="fw-bold">Student Registration</h5>
                 <p>Register students manually or through CSV import.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <a href="{% url 'student_registration' %}" class="btn btn-outline-danger btn-sm">
+                    Open
+                </a>
+                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm">
+                    View Students
                 </a>
             </div>
         </div>
