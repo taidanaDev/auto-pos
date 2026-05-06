@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                {{ page_title }}
+            </div>
+
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Target Course</label>
+                        {{ form.course }}
+                        <div class="form-text">
+                            This is the course that has a requirement.
+                        </div>
+                        {% for error in form.course.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Required Course</label>
+                        {{ form.required_course }}
+                        <div class="form-text">
+                            This is the prerequisite or co-requisite course.
+                        </div>
+                        {% for error in form.required_course.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Requirement Type</label>
+                        {{ form.requirement_type }}
+                        {% for error in form.requirement_type.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">Save</button>
+                    <a href="{% url 'course_requirement_list' %}" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

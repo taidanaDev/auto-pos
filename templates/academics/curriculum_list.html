@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Curricula</h2>
+        <p class="text-muted mb-0">Official curriculum records.</p>
+    </div>
+
+    <a href="{% url 'curriculum_create' %}" class="btn btn-danger">
+        Add Curriculum
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if curricula %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Program</th>
+                            <th>Academic Year</th>
+                            <th>Total Units</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for curriculum in curricula %}
+                            <tr>
+                                <td>{{ curriculum.curriculum_code }}</td>
+                                <td>{{ curriculum.curriculum_name }}</td>
+                                <td>{{ curriculum.program.program_code }}</td>
+                                <td>{{ curriculum.academic_year_label }}</td>
+                                <td>{{ curriculum.total_units }}</td>
+                                <td>
+                                    {% if curriculum.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No curriculum records yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

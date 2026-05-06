@@ -29,8 +29,8 @@
             <div class="card-body">
                 <h5 class="fw-bold">Manage Curriculum</h5>
                 <p>Upload and manage official curriculum records.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <a href="{% url 'curriculum_list' %}" class="btn btn-outline-danger btn-sm">
+                    Open
                 </a>
             </div>
         </div>
@@ -41,8 +41,8 @@
             <div class="card-body">
                 <h5 class="fw-bold">Course Requirements</h5>
                 <p>Manage prerequisites, co-requisites, and course availability.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <a href="{% url 'course_requirement_list' %}" class="btn btn-outline-danger btn-sm">
+                    Open
                 </a>
             </div>
         </div>
@@ -83,6 +83,29 @@
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+        <div class="card-body">
+            <h5 class="fw-bold">Courses</h5>
+            <p>Manage course codes, course titles, units, and electives.</p>
 
+            <a href="{% url 'course_list' %}" class="btn btn-outline-danger btn-sm">
+                Open
+            </a>
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card shadow-sm h-100">
+        <div class="card-body">
+            <h5 class="fw-bold">Curriculum Course Structure</h5>
+            <p>Assign courses to year levels, terms, and display order.</p>
+
+            <a href="{% url 'curriculum_course_list' %}" class="btn btn-outline-danger btn-sm">
+                Open
+            </a>
+        </div>
+    </div>
+</div>
 </div>
 {% endblock %}

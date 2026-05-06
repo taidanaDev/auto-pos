@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                {{ page_title }}
+            </div>
+
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Course Code</label>
+                        {{ form.course_code }}
+                        {% for error in form.course_code.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Course Title</label>
+                        {{ form.course_title }}
+                        {% for error in form.course_title.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Units</label>
+                        {{ form.units }}
+                        {% for error in form.units.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.is_elective }}
+                        <label class="form-check-label">Elective Course</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">Save</button>
+                    <a href="{% url 'course_list' %}" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

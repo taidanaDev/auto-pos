@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                {{ page_title }}
+            </div>
+
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Program</label>
+                        {{ form.program }}
+                        {% for error in form.program.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Curriculum Code</label>
+                        {{ form.curriculum_code }}
+                        {% for error in form.curriculum_code.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Curriculum Name</label>
+                        {{ form.curriculum_name }}
+                        {% for error in form.curriculum_name.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Academic Year Label</label>
+                            {{ form.academic_year_label }}
+                            {% for error in form.academic_year_label.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Units</label>
+                            {{ form.total_units }}
+                            {% for error in form.total_units.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.is_active }}
+                        <label class="form-check-label">Active Curriculum</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">Save</button>
+                    <a href="{% url 'curriculum_list' %}" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
