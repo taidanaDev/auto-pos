@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Academic Progress</h2>
+        <p class="text-muted mb-0">
+            View your completed, failed, and remaining courses.
+        </p>
+    </div>
+
+    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">
+        Back to Dashboard
+    </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p class="mb-1">
+            <strong>Student:</strong> {{ student.full_name }}
+        </p>
+        <p class="mb-1">
+            <strong>SR-Code:</strong> {{ student.sr_code }}
+        </p>
+        <p class="mb-0">
+            <strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}
+        </p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total Units</h6>
+                <h3 class="fw-bold">{{ progress.total_units }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Earned Units</h6>
+                <h3 class="fw-bold text-success">{{ progress.earned_units }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Remaining Units</h6>
+                <h3 class="fw-bold text-danger">{{ progress.remaining_units }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Progress</h6>
+                <h3 class="fw-bold">{{ progress.progress_percentage }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">Progress Bar</h5>
+
+        <div class="progress" style="height: 25px;">
+            <div 
+                class="progress-bar bg-success" 
+                role="progressbar"
+                style="width: {{ progress.progress_percentage }}%;"
+                aria-valuenow="{{ progress.progress_percentage }}"
+                aria-valuemin="0"
+                aria-valuemax="100">
+                {{ progress.progress_percentage }}%
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Completed Courses</h6>
+                <h3 class="fw-bold text-success">{{ progress.completed_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Failed Courses</h6>
+                <h3 class="fw-bold text-danger">{{ progress.failed_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Remaining Courses</h6>
+                <h3 class="fw-bold text-warning">{{ progress.remaining_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        Completed Courses
+    </div>
+
+    <div class="card-body">
+        {% if progress.completed_courses %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Grade</th>
+                            <th>School Year</th>
+                            <th>Term</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in progress.completed_courses %}
+                            <tr>
+                                <td>{{ record.course.course_code }}</td>
+                                <td>{{ record.course.course_title }}</td>
+                                <td>{{ record.course.units }}</td>
+                                <td>{{ record.grade_value }}</td>
+                                <td>{{ record.school_year }}</td>
+                                <td>{{ record.get_term_display }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No completed courses yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white">
+        Failed Courses
+    </div>
+
+    <div class="card-body">
+        {% if progress.failed_courses %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Grade</th>
+                            <th>School Year</th>
+                            <th>Term</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in progress.failed_courses %}
+                            <tr>
+                                <td>{{ record.course.course_code }}</td>
+                                <td>{{ record.course.course_title }}</td>
+                                <td>{{ record.course.units }}</td>
+                                <td>{{ record.grade_value }}</td>
+                                <td>{{ record.school_year }}</td>
+                                <td>{{ record.get_term_display }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No failed courses.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning">
+        Remaining Courses
+    </div>
+
+    <div class="card-body">
+        {% if progress.remaining_courses %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Term</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Standing Requirement</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in progress.remaining_courses %}
+                            <tr>
+                                <td>{{ item.year_level }}</td>
+                                <td>{{ item.get_term_display }}</td>
+                                <td>{{ item.course.course_code }}</td>
+                                <td>{{ item.course.course_title }}</td>
+                                <td>{{ item.course.units }}</td>
+                                <td>{{ item.standing_requirement|default:"—" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No remaining courses.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

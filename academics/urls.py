@@ -25,4 +25,7 @@ urlpatterns = [
     # Students grade input
     path("students/my-grades/input/", views.input_grades, name="input_grades"),
     path("students/my-grades/records/", views.my_course_records, name="my_course_records"),
+    
+    # Student academic progress
+    path("my-progress/", views.academic_progress, name="academic_progress"),
 ]

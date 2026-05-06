@@ -25,6 +25,7 @@ from .models import (
     StudentCourseRecord,
 )
 
+from .services import get_student_academic_progress
 # ---------------------------------------------------------------------------
 # Valid grade values: 1.00 to 5.00 in 0.25 increments
 # ---------------------------------------------------------------------------
@@ -434,4 +435,19 @@ def my_course_records(request):
     return render(request, "academics/my_course_records.html", {
         "student": student,
         "records": records,
+    })
+
+@student_required
+def academic_progress(request):
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect("student_dashboard")
+
+    progress_data = get_student_academic_progress(student)
+
+    return render(request, "academics/academic_progress.html", {
+        "student": student,
+        "progress": progress_data,
     })
