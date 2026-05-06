@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">My Course Records</h2>
+        <p class="text-muted mb-0">
+            Saved course grades and status.
+        </p>
+    </div>
+
+    <a href="{% url 'input_grades' %}" class="btn btn-danger">
+        Input Grades
+    </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p class="mb-1">
+            <strong>Student:</strong> {{ student.full_name }}
+        </p>
+        <p class="mb-1">
+            <strong>SR-Code:</strong> {{ student.sr_code }}
+        </p>
+        <p class="mb-0">
+            <strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}
+        </p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if records %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>School Year</th>
+                            <th>Term</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th>Credit Earned</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td>{{ record.school_year }}</td>
+                                <td>{{ record.get_term_display }}</td>
+                                <td>{{ record.course.course_code }}</td>
+                                <td>{{ record.course.course_title }}</td>
+                                <td>{{ record.course.units }}</td>
+                                <td>{{ record.grade_value|default:"—" }}</td>
+
+                                <td>
+                                    {% if record.status == "passed" %}
+                                        <span class="badge bg-success">Passed</span>
+                                    {% elif record.status == "failed" %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% elif record.status == "dropped" %}
+                                        <span class="badge bg-dark">Dropped</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">In Progress</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if record.is_credit_earned %}
+                                        Yes
+                                    {% else %}
+                                        No
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ record.remarks|default:"—" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">
+                No course records saved yet.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

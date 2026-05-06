@@ -330,3 +330,4 @@ class StudentCourseRecord(models.Model):
 
     def __str__(self):
         return f"{self.student.sr_code} - {self.course.course_code}"
+    

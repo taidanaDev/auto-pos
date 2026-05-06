@@ -1,3 +1,4 @@
+from decimal import Decimal
 import re
 
 from django import forms
@@ -5,8 +6,9 @@ from django.core.exceptions import ValidationError
 
 from accounts.models import User
 from .models import (
-    # FIX #1: Removed unused imports Department and Program.
-    # They were imported but not referenced by any form in this file.
+    Department,
+    Program,
+    StudentCourseRecord,
     Curriculum,
     Student,
     Course,
@@ -343,3 +345,49 @@ class CourseRequirementForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+class StudentGradeForm(forms.Form):
+    grade_value = forms.DecimalField(
+        required=False,
+        max_digits=4,
+        decimal_places=2,
+        min_value=1.00,
+        max_value=5.00,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.25",
+            "min": "1.00",
+            "max": "5.00",
+            "placeholder": "Example: 2.50"
+        })
+    )
+
+    remarks = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Optional remarks"
+        })
+    )
+
+    def clean_grade_value(self):
+        grade = self.cleaned_data.get("grade_value")
+
+        if grade is None:
+            return grade  # optional field, skip
+
+        from decimal import Decimal
+        valid_grades = {
+            Decimal("1.00") + Decimal("0.25") * i for i in range(17)
+        }
+
+        if grade not in valid_grades:
+            raise forms.ValidationError(
+                "Grade must be in 0.25 increments (e.g. 1.00, 1.25, 1.50)."
+            )
+
+        return grade
+    def clean_remarks(self):
+        remarks = self.cleaned_data.get("remarks", "")
+        return remarks.strip()

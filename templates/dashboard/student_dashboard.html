@@ -26,8 +26,11 @@
             <div class="card-body">
                 <h5 class="fw-bold">Input Grades</h5>
                 <p>Input grades per course for academic progress tracking.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <a href="{% url 'input_grades' %}" class="btn btn-outline-danger btn-sm">
+                    Open
+                </a>
+                <a href="{% url 'my_course_records' %}" class="btn btn-outline-secondary btn-sm">
+                    View Records
                 </a>
             </div>
         </div>

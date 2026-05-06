@@ -21,4 +21,8 @@ urlpatterns = [
     # Course requirements
     path("course-requirements/", views.course_requirement_list, name="course_requirement_list"),
     path("course-requirements/add/", views.course_requirement_create, name="course_requirement_create"),
+
+    # Students grade input
+    path("students/my-grades/input/", views.input_grades, name="input_grades"),
+    path("students/my-grades/records/", views.my_course_records, name="my_course_records"),
 ]
