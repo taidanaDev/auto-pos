@@ -85,6 +85,65 @@
 </div>
 
 <div class="row g-3 mb-4">
+    <div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-2">Year Standing</h5>
+
+        <p class="mb-1">
+            <strong>Current Standing:</strong>
+            {{ progress.year_standing }}{% if progress.year_standing == 1 %}st{% elif progress.year_standing == 2 %}nd{% elif progress.year_standing == 3 %}rd{% else %}th{% endif %} Year
+        </p>
+
+        <p class="text-muted mb-0">
+            Standing is based on the 75% taken-course rule. Failed courses count as taken for standing, but not as completed for prerequisites or earned units.
+        </p>
+    </div>
+</div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light fw-bold">
+        Year Standing Breakdown
+    </div>
+
+    <div class="card-body">
+        {% if progress.year_standing_breakdown %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Year Level Checked</th>
+                            <th>Required Courses</th>
+                            <th>Taken Courses</th>
+                            <th>75% Required Count</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in progress.year_standing_breakdown %}
+                            <tr>
+                                <td>{{ item.year_level }}</td>
+                                <td>{{ item.total_required_count }}</td>
+                                <td>{{ item.taken_count }}</td>
+                                <td>{{ item.minimum_required_count }}</td>
+                                <td>
+                                    {% if item.qualifies %}
+                                        <span class="badge bg-success">Qualified</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Not Qualified</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">
+                No year standing data available.
+            </p>
+        {% endif %}
+    </div>
+</div>
     <div class="col-md-4">
         <div class="card shadow-sm h-100">
             <div class="card-body text-center">
