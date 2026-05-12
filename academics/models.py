@@ -159,13 +159,13 @@ class Course(models.Model):
 class CurriculumCourseQuerySet(models.QuerySet):
     def ordered_by_pos_sequence(self):
         return self.annotate(
-            term_order=Case(
+            pos_term_order=Case(
                 When(term="first_sem", then=1),
                 When(term="second_sem", then=2),
                 When(term="midterm", then=3),
                 output_field=IntegerField()
             )
-        ).order_by("year_level", "term_order", "display_order")
+        ).order_by("year_level", "pos_term_order", "display_order")
 
 class CurriculumCourse(models.Model):
     class Term(models.TextChoices):

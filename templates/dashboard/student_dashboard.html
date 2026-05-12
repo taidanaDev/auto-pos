@@ -62,8 +62,8 @@
             <div class="card-body">
                 <h5 class="fw-bold">View POS</h5>
                 <p>View your current Program of Study.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-danger btn-sm">
+                    Open
                 </a>
             </div>
         </div>
@@ -99,10 +99,15 @@
     <div class="col-md-4">
         <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5 class="fw-bold">Rearrange POS</h5>
-                <p>Generate an adjusted POS based on your course records.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
+                <h5 class="fw-bold">Generate POS</h5>
+                <p>Generate a draft POS based on your current course records.</p>
+
+                <a href="{% url 'generate_pos' %}" class="btn btn-outline-danger btn-sm">
+                    Generate
+                </a>
+
+                <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-secondary btn-sm">
+                    My Plans
                 </a>
             </div>
         </div>

@@ -271,7 +271,7 @@ def input_grades(request):
     ).filter(
         curriculum=student.curriculum
     ).annotate(
-        term_order=Case(
+        pos_term_order=Case(
             When(term="first_sem", then=1),
             When(term="second_sem", then=2),
             When(term="midterm", then=3),
@@ -279,7 +279,7 @@ def input_grades(request):
         )
     ).order_by(
         "year_level",
-        "term_order",
+        "pos_term_order",
         "display_order"
     )
     # Pre-load existing records into a dict keyed by course_id for O(1) lookup.

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Generated POS Plan</h2>
+        <p class="text-muted mb-0">
+            Draft POS plan based on your current course records.
+        </p>
+    </div>
+
+    <div>
+        <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-danger">
+            My POS Plans
+        </a>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">
+            Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p class="mb-1">
+            <strong>Student:</strong> {{ student.full_name }}
+        </p>
+        <p class="mb-1">
+            <strong>SR-Code:</strong> {{ student.sr_code }}
+        </p>
+        <p class="mb-1">
+            <strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}
+        </p>
+        <p class="mb-1">
+            <strong>Plan Status:</strong>
+            <span class="badge bg-secondary">{{ pos_plan.get_status_display }}</span>
+        </p>
+        <p class="mb-0">
+            <strong>Generated At:</strong> {{ pos_plan.created_at }}
+        </p>
+    </div>
+</div>
+
+<div class="alert alert-warning">
+    This is a basic generated POS.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        POS Plan Items
+    </div>
+
+    <div class="card-body">
+        {% if items %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Term</th>
+                            <th>Order</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Source</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.planned_year_level }}</td>
+                                <td>{{ item.get_planned_term_display }}</td>
+                                <td>{{ item.display_order }}</td>
+                                <td>{{ item.course.course_code }}</td>
+                                <td>{{ item.course.course_title }}</td>
+                                <td>{{ item.course.units }}</td>
+                                <td>
+                                    {% if item.is_auto_assigned %}
+                                        <span class="badge bg-info text-dark">Auto</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Manual</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.notes|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">
+                No POS items found. This may mean all courses are already completed.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
