@@ -40,9 +40,19 @@
     </div>
 </div>
 
-<div class="alert alert-warning">
-    This is a basic generated POS.
+<div class="alert alert-info">
+    This POS plan was generated using prerequisite checks, year standing eligibility, official course term availability, and unit load limits.
 </div>
+{% if pos_plan.notes %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-light fw-bold">
+        Plan Notes
+    </div>
+    <div class="card-body">
+        <pre class="mb-0">{{ pos_plan.notes }}</pre>
+    </div>
+</div>
+{% endif %}
 
 <div class="card shadow-sm">
     <div class="card-header bg-danger text-white">
