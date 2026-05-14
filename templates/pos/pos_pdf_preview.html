@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">POS PDF Preview</h2>
+        <p class="text-muted mb-0">
+            Preview the generated POS before downloading.
+        </p>
+    </div>
+
+    <div>
+        <a href="{% url 'pos_pdf_download' pos_plan.id %}" class="btn btn-danger">
+            Download PDF
+        </a>
+
+        <a href="{% url 'generated_pos_detail' pos_plan.id %}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body bg-white">
+
+        <div class="text-center mb-4">
+            <h5 class="fw-bold mb-0">BATANGAS STATE UNIVERSITY</h5>
+            <p class="mb-0">College of Engineering</p>
+            <p class="mb-0">Computer Engineering Evaluation</p>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Name:</strong> {{ student.full_name }}</p>
+                <p class="mb-1"><strong>SR-Code:</strong> {{ student.sr_code }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}</p>
+                <p class="mb-1"><strong>Academic Year:</strong> {{ student.curriculum.academic_year_label }}</p>
+            </div>
+        </div>
+
+        {% if items %}
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Year</th>
+                            <th>Term</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Units</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.planned_year_level }}</td>
+                                <td>{{ item.get_planned_term_display }}</td>
+                                <td>{{ item.course.course_code }}</td>
+                                <td>{{ item.course.course_title }}</td>
+                                <td>{{ item.course.units }}</td>
+                                <td>
+                                    {% if item.linked_record and item.linked_record.grade_value %}
+                                        {{ item.linked_record.grade_value }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No POS items found.</p>
+        {% endif %}
+
+        <div class="row mt-5">
+            <div class="col-md-4 text-center">
+                <p class="mb-5">Evaluated by:</p>
+                <hr>
+                <p>Evaluator</p>
+            </div>
+
+            <div class="col-md-4 text-center">
+                <p class="mb-5">Checked and Reviewed:</p>
+                <hr>
+                <p>Program Chair</p>
+            </div>
+
+            <div class="col-md-4 text-center">
+                <p class="mb-5">Approved by:</p>
+                <hr>
+                <p>Department Chair</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

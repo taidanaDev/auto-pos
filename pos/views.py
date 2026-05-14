@@ -10,6 +10,7 @@ from accounts.models import User
 from academics.models import Student
 from .models import POSPlan
 from .services import generate_rearranged_pos_plan
+from .pdf import generate_pos_pdf_response
 
 def student_required(view_func):
     @functools.wraps(view_func)
@@ -105,3 +106,42 @@ def my_pos_plans(request, student):
         "student": student,
         "pos_plans": pos_plans,
     })
+
+@student_required
+@login_required
+@with_student_profile
+def pos_pdf_preview(request, student, pos_plan_id):
+    pos_plan = get_object_or_404(
+        POSPlan,
+        id=pos_plan_id,
+        student=student
+    )
+
+    items = pos_plan.items.select_related("course").all().order_by(
+        "planned_year_level",
+        "planned_term",
+        "display_order"
+    )
+
+    return render(request, "pos/pos_pdf_preview.html", {
+        "student": student,
+        "pos_plan": pos_plan,
+        "items": items,
+    })
+
+
+@student_required
+@login_required
+@with_student_profile
+def pos_pdf_download(request, student, pos_plan_id):
+    pos_plan = get_object_or_404(
+        POSPlan,
+        id=pos_plan_id,
+        student=student
+    )
+
+    try:
+        return generate_pos_pdf_response(request, student, pos_plan)
+    except RuntimeError as exc:
+        messages.error(request, str(exc))
+        return redirect("pos_pdf_preview", pos_plan_id=pos_plan.id)

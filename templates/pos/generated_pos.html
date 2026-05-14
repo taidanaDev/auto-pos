@@ -10,6 +10,13 @@
     </div>
 
     <div>
+        <a href="{% url 'pos_pdf_preview' pos_plan.id %}" class="btn btn-outline-danger">
+            Preview PDF
+        </a>
+
+        <a href="{% url 'pos_pdf_download' pos_plan.id %}" class="btn btn-danger">
+            Download PDF
+        </a>
         <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-danger">
             My POS Plans
         </a>
@@ -18,6 +25,7 @@
         </a>
     </div>
 </div>
+
 
 <div class="card shadow-sm mb-3">
     <div class="card-body">

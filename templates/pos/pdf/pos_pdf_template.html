@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>POS PDF</title>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h3,
+        .header h4,
+        .header p {
+            margin: 2px 0;
+        }
+
+        .student-info {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .student-info td {
+            padding: 3px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            background: #eeeeee;
+            padding: 5px;
+            margin-top: 12px;
+            border: 1px solid #000;
+        }
+
+        table.pos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        table.pos-table th,
+        table.pos-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: top;
+        }
+
+        table.pos-table th {
+            text-align: center;
+            font-weight: bold;
+            background: #f2f2f2;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .signature-section {
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .signature-section td {
+            width: 33.33%;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .signature-line {
+            margin-top: 35px;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h3>BATANGAS STATE UNIVERSITY</h3>
+    <p>The National Engineering University</p>
+    <p>Alangilan Campus</p>
+    <h4>COMPUTER ENGINEERING EVALUATION</h4>
+</div>
+
+<table class="student-info">
+    <tr>
+        <td><strong>Name:</strong> {{ student.full_name }}</td>
+        <td><strong>Date:</strong> {{ pos_plan.created_at|date:"F d, Y" }}</td>
+    </tr>
+    <tr>
+        <td><strong>SR-Code:</strong> {{ student.sr_code }}</td>
+        <td><strong>Academic Year:</strong> {{ student.curriculum.academic_year_label }}</td>
+    </tr>
+    <tr>
+        <td><strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}</td>
+        <td><strong>Status:</strong> {{ student.get_status_display }}</td>
+    </tr>
+</table>
+
+{% for group, courses in grouped_items.items %}
+    <div class="section-title">
+        Year {{ group.0 }} -
+        {% if group.1 == "first_sem" %}
+            First Semester
+        {% elif group.1 == "second_sem" %}
+            Second Semester
+        {% elif group.1 == "midterm" %}
+            Midterm
+        {% else %}
+            {{ group.1 }}
+        {% endif %}
+    </div>
+
+    <table class="pos-table">
+        <thead>
+            <tr>
+                <th style="width: 14%;">Course Code</th>
+                <th style="width: 42%;">Course Title</th>
+                <th style="width: 10%;">Unit/s</th>
+                <th style="width: 24%;">Pre-requisite / Co-requisite</th>
+                <th style="width: 10%;">Grade</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for course in courses %}
+                <tr>
+                    <td class="center">{{ course.course_code }}</td>
+                    <td>{{ course.course_title }}</td>
+                    <td class="center">{{ course.units }}</td>
+                    <td>{{ course.requirement_text }}</td>
+                    <td class="center">{{ course.grade }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+
+<table class="signature-section">
+    <tr>
+        <td>
+            <p>Evaluated by:</p>
+            <div class="signature-line">Evaluator</div>
+            <p>Date: ____________</p>
+        </td>
+
+        <td>
+            <p>Checked and Reviewed:</p>
+            <div class="signature-line">Program Chair</div>
+            <p>Date: ____________</p>
+        </td>
+
+        <td>
+            <p>Approved by:</p>
+            <div class="signature-line">Department Chair</div>
+            <p>Date: ____________</p>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
