@@ -1,7 +1,7 @@
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 
-from academics.models import CourseRequirement, StudentCourseRecord
+from academics.models import CourseRequirement, CurriculumCourse, StudentCourseRecord
 
 
 def get_course_requirement_text(course):
@@ -41,27 +41,55 @@ def get_student_grade_for_course(student, course):
 
 
 def build_pos_pdf_context(student, pos_plan):
-    items = pos_plan.items.select_related("course").all().order_by(
-        "planned_year_level",
-        "planned_term",
-        "display_order"
+    curriculum_courses = list(
+        CurriculumCourse.objects.select_related("course").filter(
+            curriculum=student.curriculum,
+        ).ordered_by_pos_sequence()
     )
+
+    course_ids = [item.course_id for item in curriculum_courses]
+
+    latest_records = {}
+    records = StudentCourseRecord.objects.filter(
+        student=student,
+        course_id__in=course_ids,
+    ).order_by("course_id", "-created_at")
+
+    for record in records:
+        if record.course_id not in latest_records:
+            latest_records[record.course_id] = record
+
+    requirements = CourseRequirement.objects.select_related(
+        "required_course"
+    ).filter(
+        course_id__in=course_ids
+    )
+
+    requirement_map = {}
+    for requirement in requirements:
+        label = "Pre" if requirement.requirement_type == "prerequisite" else "Co"
+        requirement_map.setdefault(requirement.course_id, []).append(
+            f"{label}: {requirement.required_course.course_code}"
+        )
 
     grouped_items = {}
 
-    for item in items:
-        key = (item.planned_year_level, item.planned_term)
+    for curriculum_course in curriculum_courses:
+        course = curriculum_course.course
+        key = (curriculum_course.year_level, curriculum_course.term)
 
         if key not in grouped_items:
             grouped_items[key] = []
 
+        record = latest_records.get(course.id)
+
         grouped_items[key].append({
-            "course_code": item.course.course_code,
-            "course_title": item.course.course_title,
-            "units": item.course.units,
-            "requirement_text": get_course_requirement_text(item.course),
-            "grade": get_student_grade_for_course(student, item.course),
-            "notes": item.notes,
+            "course_code": course.course_code,
+            "course_title": course.course_title,
+            "units": course.units,
+            "requirement_text": " / ".join(requirement_map.get(course.id, [])),
+            "grade": record.grade_value if record and record.grade_value is not None else "",
+            "notes": "",
         })
 
     return {

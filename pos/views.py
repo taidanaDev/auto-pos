@@ -10,7 +10,7 @@ from accounts.models import User
 from academics.models import Student
 from .models import POSPlan
 from .services import generate_rearranged_pos_plan
-from .pdf import generate_pos_pdf_response
+from .pdf import build_pos_pdf_context, generate_pos_pdf_response
 
 def student_required(view_func):
     @functools.wraps(view_func)
@@ -117,17 +117,11 @@ def pos_pdf_preview(request, student, pos_plan_id):
         student=student
     )
 
-    items = pos_plan.items.select_related("course").all().order_by(
-        "planned_year_level",
-        "planned_term",
-        "display_order"
+    return render(
+        request,
+        "pos/pos_pdf_preview.html",
+        build_pos_pdf_context(student, pos_plan),
     )
-
-    return render(request, "pos/pos_pdf_preview.html", {
-        "student": student,
-        "pos_plan": pos_plan,
-        "items": items,
-    })
 
 
 @student_required
