@@ -1,114 +1,98 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block app_header %}{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold mb-3">Admin Dashboard</h2>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-profile">
+            <div class="avatar-placeholder">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <p class="sidebar-name">{{ user.first_name }} {{ user.last_name }}</p>
+            <p class="sidebar-meta fw-bold">ADMIN</p>
+        </div>
 
-<p class="text-muted">
-    Welcome, {{ user.first_name }} {{ user.last_name }}.
-</p>
+        <nav class="sidebar-nav">
+            <a href="{% url 'student_registration' %}"><i class="fa-solid fa-user-plus"></i> Student Registration</a>
+            <a href="{% url 'curriculum_upload' %}"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Curriculum</a>
+            <a href="{% url 'curriculum_list' %}"><i class="fa-solid fa-book-open"></i> Manage Curriculum</a>
+            <a href="{% url 'course_requirement_list' %}"><i class="fa-solid fa-diagram-project"></i> Course Requirements</a>
+        </nav>
 
-<div class="row g-3">
+        <div class="sidebar-footer">
+            <img src="{% static 'images/BOT_logo.png' %}" alt="Back onTrack" class="sidebar-logo">
+        </div>
+    </aside>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Student Registration</h5>
-                <p>Register students manually or through CSV import.</p>
-                <a href="{% url 'student_registration' %}" class="btn btn-outline-danger btn-sm">
-                    Open
-                </a>
-                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm">
-                    View Students
-                </a>
+    <section class="main-content">
+        <header class="top-header">
+            <div class="campus-brand">
+                <img src="{% static 'images/bsu-logo.png' %}" alt="BSU Logo" class="bsu-logo">
+                <div>
+                    <h1>Batangas State University - Alangilan Campus</h1>
+                    <p>Auto POS: Automated Program of Study Rearrangement</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger logout-btn">Logout</button>
+            </form>
+        </header>
+
+        <h2 class="dashboard-title mb-4">Hi, Welcome Back @Admin!</h2>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="module-card">
+                    <h3><i class="fa-solid fa-users"></i> Student Registration</h3>
+                    <p class="muted-copy">Register students and review student accounts.</p>
+                    <div class="module-actions">
+                        <a href="{% url 'student_registration' %}" class="btn btn-danger btn-sm">Manual Register</a>
+                        <a href="{% url 'student_import' %}" class="btn btn-outline-secondary btn-sm"> Import</a>
+                        <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm">View Students</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="module-card">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Curriculum</h3>
+                    <p class="muted-copy">Upload official curriculum/POS structure files for extraction and review.</p>
+                    <div class="module-actions">
+                        <a href="{% url 'curriculum_upload' %}" class="btn btn-danger btn-sm">Upload File</a>
+                        <a href="{% url 'curriculum_list' %}" class="btn btn-outline-secondary btn-sm">View Curriculum</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="module-card">
+                    <h3><i class="fa-solid fa-book-open"></i> Manage Curriculum</h3>
+                    <p class="muted-copy">Maintain courses and official curriculum metadata.</p>
+                    <div class="module-actions">
+                        <a href="{% url 'course_list' %}" class="btn btn-outline-danger btn-sm">View Courses</a>
+                        <a href="{% url 'curriculum_course_list' %}" class="btn btn-danger btn-sm">Curriculum Course Structure</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="module-card">
+                    <h3><i class="fa-solid fa-diagram-project"></i> Course Requirements</h3>
+                    <p class="muted-copy">Manage prerequisites, corequisites, and standing requirements.</p>
+                    <div class="module-actions">
+                        <a href="{% url 'course_requirement_list' %}" class="btn btn-danger btn-sm">Manage Prerequisites/Corequisites</a>
+                    </div>
+                </div>
+            </div>
+
+                </div>
+            </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Manage Curriculum</h5>
-                <p>Upload and manage official curriculum records.</p>
-                <a href="{% url 'curriculum_list' %}" class="btn btn-outline-danger btn-sm">
-                    Open
-                </a>
-                <a href="{% url 'curriculum_upload' %}" class="btn btn-outline-secondary btn-sm">
-                    Upload
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Course Requirements</h5>
-                <p>Manage prerequisites, co-requisites, and course availability.</p>
-                <a href="{% url 'course_requirement_list' %}" class="btn btn-outline-danger btn-sm">
-                    Open
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Student Progress</h5>
-                <p>View student academic records and completion status.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Manual POS Adjustment</h5>
-                <p>Adjust generated POS plans for special cases.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">POS Reports</h5>
-                <p>Preview and generate POS reports.</p>
-                <a href="#" class="btn btn-outline-danger btn-sm disabled">
-                    Coming Soon
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-        <div class="card-body">
-            <h5 class="fw-bold">Courses</h5>
-            <p>Manage course codes, course titles, units, and electives.</p>
-
-            <a href="{% url 'course_list' %}" class="btn btn-outline-danger btn-sm">
-                Open
-            </a>
-        </div>
-    </div>
-</div>
-<div class="col-md-4">
-    <div class="card shadow-sm h-100">
-        <div class="card-body">
-            <h5 class="fw-bold">Curriculum Course Structure</h5>
-            <p>Assign courses to year levels, terms, and display order.</p>
-
-            <a href="{% url 'curriculum_course_list' %}" class="btn btn-outline-danger btn-sm">
-                Open
-            </a>
-        </div>
-    </div>
-</div>
+    </section>
 </div>
 {% endblock %}

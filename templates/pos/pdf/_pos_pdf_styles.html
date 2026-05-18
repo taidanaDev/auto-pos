@@ -1,0 +1,243 @@
+<style>
+    @page {
+        size: 8in 13in;
+        margin: 1mm;
+    }
+
+    .pos-pdf-preview-actions {
+        margin-bottom: 1rem;
+    }
+
+    .pos-pdf-preview-scroll {
+        overflow-x: auto;
+        padding: 1rem 0 2rem;
+    }
+
+    .pos-pdf-export-body {
+        margin: 0;
+        background: #ffffff;
+    }
+
+    .pos-pdf-document {
+        width: 8in;
+        min-height: 13in;
+        margin: 0 auto;
+        padding-bottom: 42px;
+        background: #ffffff;
+        color: #000000;
+        box-sizing: border-box;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12px;
+        text-align: center;
+        position: relative;
+    }
+
+    .pos-pdf-preview-scroll .pos-pdf-document {
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+    }
+
+    .pos-pdf-export-body .pos-pdf-document {
+        width: 100%;
+        min-height: 12.95in;
+    }
+
+    .pos-pdf-content {
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .pos-pdf-header-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0 auto;
+    }
+
+    .pos-pdf-logo-cell {
+        width: 19%;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .pos-pdf-logo-cell img {
+        width: 115px;
+        height: auto;
+    }
+
+    .pos-pdf-header-text-cell {
+        width: 62%;
+        text-align: center;
+        vertical-align: middle;
+        padding-top: 7mm;
+    }
+
+    .pos-pdf-export-body .pos-pdf-header-text-cell {
+        padding-top: 0;
+    }
+
+    .pos-pdf-header-spacer-cell {
+        width: 19%;
+    }
+
+    .pos-pdf-republic {
+        font-size: 15px;
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: 2px;
+    }
+
+    .pos-pdf-bsu-name {
+        font-size: 21px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .pos-pdf-national-engineering {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        color: #d0112b;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .pos-pdf-campus {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .pos-pdf-address,
+    .pos-pdf-contact {
+        font-size: 10px;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .pos-pdf-header-line {
+        border: none;
+        border-top: 2.5pt solid #000000;
+        margin: 4px auto 3px;
+        width: 100%;
+    }
+
+    .pos-pdf-college-line {
+        font-size: 14px;
+        font-weight: bold;
+        text-align: left;
+        margin: 0 0 34px;
+        padding-left: 2.54cm;
+    }
+
+    .pos-pdf-export-body .pos-pdf-college-line {
+        padding-left: 0;
+    }
+
+    .pos-pdf-document-title {
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 12px;
+        line-height: 1.2;
+    }
+
+    .pos-pdf-student-info {
+        width: 82%;
+        margin: 0 auto 30px;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    .pos-pdf-student-info td {
+        border: 1px solid #000000;
+        padding: 1px 6px;
+        text-align: left;
+    }
+
+    .pos-pdf-student-info .pos-pdf-label-cell {
+        text-align: left;
+    }
+
+    .pos-pdf-export-body .pos-pdf-student-info .pos-pdf-label-cell {
+        text-align: center;
+    }
+
+    .pos-pdf-table {
+        width: 82%;
+        margin: 0 auto 18px;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    .pos-pdf-table th,
+    .pos-pdf-table td {
+        border: 1px solid #000000;
+        padding: 1px 5px;
+        vertical-align: top;
+    }
+
+    .pos-pdf-table th {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .pos-pdf-table td {
+        text-align: left;
+    }
+
+    .pos-pdf-year-row th {
+        font-size: 16px;
+        padding: 2px 5px;
+        text-transform: uppercase;
+    }
+
+    .pos-pdf-term-row th {
+        font-size: 15px;
+        padding: 1px 5px;
+    }
+
+    .pos-pdf-center {
+        text-align: center !important;
+    }
+
+    .pos-pdf-signature-section {
+        width: 82%;
+        margin: 40px auto 0;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .pos-pdf-signature-block {
+        margin-bottom: 28px;
+        text-align: left;
+    }
+
+    .pos-pdf-signature-block p {
+        margin: 0 0 22px;
+    }
+
+    .pos-pdf-signature-date {
+        margin-top: 0 !important;
+    }
+
+    .pos-pdf-footer {
+        position: absolute;
+        left: 2.54cm;
+        right: 2.54cm;
+        bottom: 0.85cm;
+        font-family: Arial, sans-serif;
+        font-style: italic;
+        font-weight: bold;
+        font-size: 12pt;
+        color: #cc0000;
+        text-align: center;
+    }
+
+    .pos-pdf-export-body .pos-pdf-footer {
+        position: fixed;
+    }
+</style>

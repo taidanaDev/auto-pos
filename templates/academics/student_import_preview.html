@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Student Import Preview</h2>
+        <p class="text-muted mb-0">
+            Review and edit student records before saving.
+        </p>
+    </div>
+
+    <a href="{% url 'student_import' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p class="mb-0">
+            <strong>Total Rows:</strong> {{ preview_rows|length }}
+        </p>
+    </div>
+</div>
+
+{% if has_errors %}
+    <div class="alert alert-danger">
+        Some rows have errors. Edit the table below and confirm again.
+    </div>
+{% else %}
+    <div class="alert alert-success">
+        No validation errors found. You may still edit rows before saving.
+    </div>
+{% endif %}
+
+<form method="POST" action="{% url 'student_import_confirm' %}">
+    {% csrf_token %}
+
+    <input type="hidden" name="row_count" value="{{ preview_rows|length }}">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if preview_rows %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Row</th>
+                                <th>SR-Code</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Email</th>
+                                <th>Curriculum Code</th>
+                                <th>Section Code</th>
+                                <th>Status</th>
+                                <th>Temp Password</th>
+                                <th>Errors</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for row in preview_rows %}
+                                <tr>
+                                    <td>
+                                        {{ row.row_number }}
+                                        <input type="hidden" name="row_number_{{ forloop.counter0 }}" value="{{ row.row_number }}">
+                                    </td>
+
+                                    <td style="min-width: 130px;">
+                                        <input 
+                                            type="text"
+                                            name="sr_code_{{ forloop.counter0 }}"
+                                            value="{{ row.sr_code }}"
+                                            class="form-control form-control-sm"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 140px;">
+                                        <input 
+                                            type="text"
+                                            name="first_name_{{ forloop.counter0 }}"
+                                            value="{{ row.first_name }}"
+                                            class="form-control form-control-sm"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 140px;">
+                                        <input 
+                                            type="text"
+                                            name="last_name_{{ forloop.counter0 }}"
+                                            value="{{ row.last_name }}"
+                                            class="form-control form-control-sm"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 220px;">
+                                        <input 
+                                            type="email"
+                                            name="email_{{ forloop.counter0 }}"
+                                            value="{{ row.email }}"
+                                            class="form-control form-control-sm"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 150px;">
+                                        <input 
+                                            type="text"
+                                            name="curriculum_code_{{ forloop.counter0 }}"
+                                            value="{{ row.curriculum_code }}"
+                                            class="form-control form-control-sm"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 120px;">
+                                        <input 
+                                            type="text"
+                                            name="section_code_{{ forloop.counter0 }}"
+                                            value="{{ row.section_code }}"
+                                            class="form-control form-control-sm"
+                                            maxlength="4"
+                                        >
+                                    </td>
+
+                                    <td style="min-width: 120px;">
+                                        <select name="status_{{ forloop.counter0 }}" class="form-select form-select-sm">
+                                            <option value="regular" {% if row.status == "regular" %}selected{% endif %}>regular</option>
+                                            <option value="irregular" {% if row.status == "irregular" %}selected{% endif %}>irregular</option>
+                                        </select>
+                                    </td>
+
+                                    <td style="min-width: 180px;">
+                                        <code>{{ row.temporary_password }}</code>
+                                    </td>
+
+                                    <td style="min-width: 240px;">
+                                        {% if row.errors %}
+                                            {% for error in row.errors %}
+                                                <div class="text-danger small">{{ error }}</div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-success small">OK</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="btn btn-danger">
+                    Confirm and Save
+                </button>
+
+                <a href="{% url 'student_import' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            {% else %}
+                <p class="text-muted mb-0">
+                    No rows found.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}

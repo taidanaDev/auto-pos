@@ -1,12 +1,11 @@
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
-from django.db import transaction
-from django.db.models import Case, When, IntegerField, Value
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import Case, IntegerField, Sum, Value, When
 
-from academics.models import CurriculumCourse, StudentCourseRecord, CourseRequirement
-from academics.services import calculate_year_standing
+from academics.models import CourseRequirement, CurriculumCourse, StudentCourseRecord
 from .models import POSPlan, POSPlanItem
 
 User = get_user_model()
@@ -17,18 +16,41 @@ TERM_ORDER = {
     "midterm": 3,
 }
 TERM_SEQUENCE = ["first_sem", "second_sem", "midterm"]
-UNIT_LIMITS = {
+DEFAULT_UNIT_LIMITS = {
     "first_sem": 25,
     "second_sem": 25,
     "midterm": 9,
 }
 
+
+def get_all_unit_limits(curriculum):
+    rows = (
+        CurriculumCourse.objects
+        .filter(curriculum=curriculum, is_required=True)
+        .values("year_level", "term")
+        .annotate(total_units=Sum("course__units"))
+    )
+    return {(row["year_level"], row["term"]): row["total_units"] for row in rows}
+
+
+def get_unit_limit_for_planning_slot(unit_limit_map, planned_year_level, term):
+    exact = unit_limit_map.get((planned_year_level, term))
+    if exact:
+        return exact
+
+    same_term_entries = [
+        (year_level, units)
+        for (year_level, mapped_term), units in unit_limit_map.items()
+        if mapped_term == term and units > 0
+    ]
+    if same_term_entries:
+        _, fallback_units = max(same_term_entries, key=lambda entry: entry[0])
+        return fallback_units
+
+    return DEFAULT_UNIT_LIMITS.get(term, 25)
+
+
 def get_ordered_curriculum_courses(curriculum):
-    """
-    Returns curriculum courses in correct academic order:
-    year level → term order → display order.
-    Only required courses are included.
-    """
     return (
         CurriculumCourse.objects.select_related("course", "curriculum")
         .filter(curriculum=curriculum, is_required=True)
@@ -44,8 +66,8 @@ def get_ordered_curriculum_courses(curriculum):
         .order_by("year_level", "pos_term_order", "display_order")
     )
 
+
 def get_passed_course_ids(student):
-    """Returns course IDs the student has already passed with credit earned."""
     return set(
         StudentCourseRecord.objects.filter(
             student=student,
@@ -56,10 +78,6 @@ def get_passed_course_ids(student):
 
 
 def get_failed_course_ids(student, passed_course_ids=None):
-    """
-    Returns course IDs the student has failed and has NOT since re-passed.
-    Pass passed_course_ids to subtract them (passed status always wins).
-    """
     failed = set(
         StudentCourseRecord.objects.filter(
             student=student,
@@ -77,9 +95,10 @@ def _build_requirement_maps(course_ids):
     prerequisite_map = defaultdict(set)
     corequisite_map = defaultdict(set)
 
-    rows = (
-        CourseRequirement.objects.filter(course_id__in=course_ids)
-        .values("course_id", "required_course_id", "requirement_type")
+    rows = CourseRequirement.objects.filter(course_id__in=course_ids).values(
+        "course_id",
+        "required_course_id",
+        "requirement_type",
     )
     for row in rows:
         if row["requirement_type"] == CourseRequirement.RequirementType.PREREQUISITE:
@@ -90,165 +109,433 @@ def _build_requirement_maps(course_ids):
     return prerequisite_map, corequisite_map
 
 
-def standing_requirement_is_met(curriculum_course, student_year_standing):
-    """
-    Returns True if the student's calculated year standing satisfies the
-    standing requirement attached to the curriculum course.
-    """
+def get_min_standing_year(curriculum_course):
     requirement = curriculum_course.standing_requirement
     if not requirement:
-        return True  # No requirement → always met
+        return None
 
     requirement = requirement.lower().strip()
 
-    if re.search(r'\b(2nd|2)\b', requirement):
-        return student_year_standing >= 2
-    if re.search(r'\b(3rd|3)\b', requirement):
-        return student_year_standing >= 3
-    if re.search(r'\b(4th|4)\b', requirement):
-        return student_year_standing >= 4
+    if re.search(r"\b(4th|4)\b", requirement):
+        return 4
+    if re.search(r"\b(3rd|3)\b", requirement):
+        return 3
+    if re.search(r"\b(2nd|2)\b", requirement):
+        return 2
 
-    return True  # Unrecognised format → assume met
+    return None
 
-def build_remaining_course_list(student, passed_course_ids, failed_course_ids):
-    """
-    Returns curriculum courses not yet completed, in priority order:
-      1. Failed courses (retry first — student must retake these)
-      2. Not-yet-taken courses (curriculum order)
-    """
+
+def slot_sort_key(year_level, term):
+    return (year_level, TERM_ORDER.get(term, 99))
+
+
+def next_same_term_after(term, minimum_slot):
+    min_year, min_term_order = minimum_slot
+    year = min_year
+    if TERM_ORDER.get(term, 99) <= min_term_order:
+        year += 1
+    return (year, term)
+
+
+def iter_future_slots_after(slot, max_year_level):
+    year_level, term = slot
+    start_order = TERM_ORDER.get(term, 99)
+
+    for year in range(year_level, max_year_level + 1):
+        for future_term in TERM_SEQUENCE:
+            if year == year_level and TERM_ORDER[future_term] <= start_order:
+                continue
+            yield (year, future_term)
+
+
+def course_has_hard_requirements(course_id, prerequisite_map, corequisite_map):
+    return bool(prerequisite_map.get(course_id) or corequisite_map.get(course_id))
+
+
+def find_next_fitting_slot(
+    course_id,
+    current_slot,
+    planned_slots,
+    course_map,
+    unit_limit_map,
+    max_year_level,
+):
+    course_units = course_map[course_id].course.units
+    official_term = course_map[course_id].term
+    units_by_slot = defaultdict(int)
+
+    for planned_course_id, slot in planned_slots.items():
+        if planned_course_id == course_id:
+            continue
+        units_by_slot[slot] += course_map[planned_course_id].course.units
+
+    if official_term in {"first_sem", "midterm"}:
+        same_term_slot = next_same_term_after(
+            official_term,
+            slot_sort_key(*current_slot),
+        )
+        same_term_limit = get_unit_limit_for_planning_slot(
+            unit_limit_map,
+            same_term_slot[0],
+            same_term_slot[1],
+        )
+        if units_by_slot[same_term_slot] + course_units <= same_term_limit:
+            return same_term_slot
+
+    for future_slot in iter_future_slots_after(current_slot, max_year_level):
+        if official_term != "midterm" and future_slot[1] == "midterm":
+            continue
+
+        limit = get_unit_limit_for_planning_slot(
+            unit_limit_map,
+            future_slot[0],
+            future_slot[1],
+        )
+        if units_by_slot[future_slot] + course_units <= limit:
+            return future_slot
+
+    return next_same_term_after(
+        official_term,
+        slot_sort_key(*current_slot),
+    )
+
+
+def get_latest_failed_record_map(student, failed_course_ids):
+    failed_records = (
+        StudentCourseRecord.objects
+        .filter(
+            student=student,
+            course_id__in=failed_course_ids,
+            status=StudentCourseRecord.RecordStatus.FAILED,
+        )
+        .order_by("course_id", "-created_at")
+    )
+
+    latest_failed_records = {}
+    for record in failed_records:
+        if record.course_id not in latest_failed_records:
+            latest_failed_records[record.course_id] = record
+
+    return latest_failed_records
+
+
+def get_latest_graded_record_map(student, course_ids):
+    records = (
+        StudentCourseRecord.objects
+        .filter(
+            student=student,
+            course_id__in=course_ids,
+            grade_value__isnull=False,
+        )
+        .order_by("course_id", "-created_at")
+    )
+
+    latest_records = {}
+    for record in records:
+        if record.course_id not in latest_records:
+            latest_records[record.course_id] = record
+
+    return latest_records
+
+
+def get_latest_record_map(student, course_ids):
+    records = (
+        StudentCourseRecord.objects
+        .filter(student=student, course_id__in=course_ids)
+        .order_by("course_id", "-created_at")
+    )
+
+    latest_records = {}
+    for record in records:
+        if record.course_id not in latest_records:
+            latest_records[record.course_id] = record
+
+    return latest_records
+
+
+def get_original_graded_curriculum_items(student):
+    curriculum_courses = list(get_ordered_curriculum_courses(student.curriculum))
+    course_ids = [item.course_id for item in curriculum_courses]
+    latest_records = get_latest_graded_record_map(student, course_ids)
+
+    original_items = []
+    for curriculum_course in curriculum_courses:
+        record = latest_records.get(curriculum_course.course_id)
+        if not record:
+            continue
+
+        original_items.append({
+            "curriculum_course": curriculum_course,
+            "course": curriculum_course.course,
+            "record": record,
+            "is_completed": (
+                record.status == StudentCourseRecord.RecordStatus.PASSED
+                and record.is_credit_earned
+            ),
+            "is_failed": record.status == StudentCourseRecord.RecordStatus.FAILED,
+        })
+
+    return original_items
+
+
+def build_complete_pos_display_items(student, pos_plan):
+    curriculum_courses = list(get_ordered_curriculum_courses(student.curriculum))
+    course_ids = [item.course_id for item in curriculum_courses]
+    latest_records = get_latest_record_map(student, course_ids)
+    moved_items = {
+        item.course_id: item
+        for item in pos_plan.items.select_related("course", "linked_record").all()
+    }
+
+    moved_out_orders_by_slot = defaultdict(list)
+    for curriculum_course in curriculum_courses:
+        moved_item = moved_items.get(curriculum_course.course_id)
+        record = latest_records.get(curriculum_course.course_id)
+        is_failed = (
+            record
+            and record.status == StudentCourseRecord.RecordStatus.FAILED
+        )
+        has_grade = record and record.grade_value is not None
+        original_slot = (curriculum_course.year_level, curriculum_course.term)
+
+        if (
+            moved_item
+            and not is_failed
+            and not has_grade
+            and (moved_item.planned_year_level, moved_item.planned_term) != original_slot
+        ):
+            moved_out_orders_by_slot[original_slot].append(curriculum_course.display_order)
+
+    for orders in moved_out_orders_by_slot.values():
+        orders.sort()
+
+    moved_in_count_by_slot = defaultdict(int)
+    grouped_items = OrderedDict()
+
+    def append_row(year_level, term, row):
+        key = (year_level, term)
+        grouped_items.setdefault(key, [])
+        grouped_items[key].append(row)
+
+    for curriculum_course in curriculum_courses:
+        course = curriculum_course.course
+        record = latest_records.get(course.id)
+        moved_item = moved_items.get(course.id)
+        is_failed = (
+            record
+            and record.status == StudentCourseRecord.RecordStatus.FAILED
+        )
+        has_grade = record and record.grade_value is not None
+
+        if moved_item and not is_failed and not has_grade:
+            continue
+
+        append_row(
+            curriculum_course.year_level,
+            curriculum_course.term,
+            {
+                "course_code": course.course_code,
+                "course_title": course.course_title,
+                "units": course.units,
+                "course": course,
+                "grade": record.grade_value if has_grade else "",
+                "status": record.status if record else "",
+                "is_completed": bool(record and record.is_credit_earned),
+                "is_failed": bool(is_failed),
+                "notes": "Original failed attempt" if is_failed else "",
+                "source": "original",
+                "sort_order": curriculum_course.display_order * 10,
+            },
+        )
+
+    for item in pos_plan.items.select_related("course", "linked_record").order_by(
+        "planned_year_level",
+        "planned_term",
+        "display_order",
+    ):
+        target_slot = (item.planned_year_level, item.planned_term)
+        target_orders = moved_out_orders_by_slot.get(target_slot, [])
+        moved_in_index = moved_in_count_by_slot[target_slot]
+
+        if moved_in_index < len(target_orders):
+            sort_order = target_orders[moved_in_index] * 10 - 1
+        else:
+            sort_order = item.display_order * 10 + 1000
+
+        moved_in_count_by_slot[target_slot] += 1
+
+        append_row(
+            item.planned_year_level,
+            item.planned_term,
+            {
+                "course_code": item.course.course_code,
+                "course_title": item.course.course_title,
+                "units": item.course.units,
+                "course": item.course,
+                "grade": "",
+                "status": "",
+                "is_completed": item.is_completed,
+                "is_failed": False,
+                "notes": item.notes or "",
+                "source": "rearranged",
+                "sort_order": sort_order,
+            },
+        )
+
+    sorted_groups = OrderedDict()
+    for key, rows in sorted(
+        grouped_items.items(),
+        key=lambda grouped: slot_sort_key(grouped[0][0], grouped[0][1]),
+    ):
+        sorted_groups[key] = sorted(
+            rows,
+            key=lambda row: (row.get("sort_order", 9999), row["course_code"]),
+        )
+
+    return sorted_groups
+
+
+def generate_rearranged_pos_plan(student, generated_by=None):
+    passed_course_ids = get_passed_course_ids(student)
+    failed_course_ids = get_failed_course_ids(student, passed_course_ids)
+    latest_failed_records = get_latest_failed_record_map(student, failed_course_ids)
     curriculum_courses = list(get_ordered_curriculum_courses(student.curriculum))
 
-    failed_courses = []
-    regular_remaining_courses = []
+    if not curriculum_courses:
+        raise ValueError(
+            f"No CurriculumCourse records found for curriculum "
+            f"{student.curriculum_id}. Cannot generate a POS plan."
+        )
+
+    course_map = {item.course_id: item for item in curriculum_courses}
+    course_ids = [item.course_id for item in curriculum_courses]
+    prerequisite_map, corequisite_map = _build_requirement_maps(course_ids)
+    unit_limit_map = get_all_unit_limits(student.curriculum)
+    max_curriculum_year = max(item.year_level for item in curriculum_courses)
+    planned_slots = {}
+    active_course_ids = []
 
     for curriculum_course in curriculum_courses:
         course_id = curriculum_course.course_id
-
         if course_id in passed_course_ids:
-            continue  # Credit already earned — never re-plan
+            continue
 
+        active_course_ids.append(course_id)
         if course_id in failed_course_ids:
-            failed_courses.append(curriculum_course)
+            planned_slots[course_id] = (
+                curriculum_course.year_level + 1,
+                curriculum_course.term,
+            )
         else:
-            regular_remaining_courses.append(curriculum_course)
+            planned_slots[course_id] = (
+                curriculum_course.year_level,
+                curriculum_course.term,
+            )
 
-    return failed_courses + regular_remaining_courses
+    for _ in range(50):
+        changed = False
 
+        for course_id in active_course_ids:
+            curriculum_course = course_map[course_id]
+            year_level, term = planned_slots[course_id]
 
-def get_next_terms_from_students(student, max_extra_years=3):
-    """
-    Generates an ordered list of planning slots starting from the student's
-    current year and semester.
-    """
-    start_year = student.year_level
-    start_semester = student.current_semester  # expected: 1, 2, or 3
+            min_standing_year = get_min_standing_year(curriculum_course)
+            if min_standing_year and year_level < min_standing_year:
+                year_level = min_standing_year
+                changed = True
 
-    semester_to_term = {
-        1: "first_sem",
-        2: "second_sem",
-        3: "midterm",
-    }
+            for prereq_id in prerequisite_map.get(course_id, set()):
+                if prereq_id in passed_course_ids:
+                    continue
 
-    start_term = semester_to_term.get(start_semester)
-    if start_term is None:
-        raise ValueError(
-            f"Student {student.id} has an invalid current_semester value: "
-            f"{start_semester!r}. Expected 1, 2, or 3."
-        )
+                prereq_slot = planned_slots.get(prereq_id)
+                if prereq_slot and slot_sort_key(*prereq_slot) >= slot_sort_key(year_level, term):
+                    year_level, term = next_same_term_after(
+                        term,
+                        slot_sort_key(*prereq_slot),
+                    )
+                    changed = True
 
-    start_term_order = TERM_ORDER[start_term]
+            for coreq_id in corequisite_map.get(course_id, set()):
+                if coreq_id in passed_course_ids:
+                    continue
 
-    max_curriculum_year = (
-        CurriculumCourse.objects.filter(curriculum=student.curriculum)
-        .order_by("-year_level")
-        .values_list("year_level", flat=True)
-        .first()
-    ) or start_year
+                coreq_slot = planned_slots.get(coreq_id)
+                if coreq_slot and coreq_slot != (year_level, term):
+                    if slot_sort_key(*coreq_slot) > slot_sort_key(year_level, term):
+                        year_level, term = coreq_slot
+                        changed = True
 
-    max_planning_year = max_curriculum_year + max_extra_years
+            if planned_slots[course_id] != (year_level, term):
+                planned_slots[course_id] = (year_level, term)
 
-    planning_slots = []
-    for year in range(start_year, max_planning_year + 1):
-        for term in TERM_SEQUENCE:
-            term_order = TERM_ORDER[term]
-            if year == start_year and term_order < start_term_order:
-                continue  # Skip terms already past for the starting year
-            planning_slots.append({
-                "year_level": year,
-                "term": term,
-                "unit_limit": UNIT_LIMITS[term],
-                "current_units": 0,
-                "courses": [],
-                "beyond_curriculum": year > max_curriculum_year,
-            })
+        units_by_slot = defaultdict(int)
+        courses_by_slot = defaultdict(list)
+        for course_id in active_course_ids:
+            slot = planned_slots[course_id]
+            units_by_slot[slot] += course_map[course_id].course.units
+            courses_by_slot[slot].append(course_id)
 
-    return planning_slots, max_curriculum_year
+        for slot, total_units in list(units_by_slot.items()):
+            limit = get_unit_limit_for_planning_slot(unit_limit_map, slot[0], slot[1])
+            while total_units > limit and courses_by_slot[slot]:
+                excess_units = total_units - limit
+                movable_course_ids = [
+                    course_id
+                    for course_id in courses_by_slot[slot]
+                    if course_id not in failed_course_ids
+                ]
+                if not movable_course_ids:
+                    break
 
+                candidates = sorted(
+                    movable_course_ids,
+                    key=lambda course_id: (
+                        planned_slots[course_id] == (
+                            course_map[course_id].year_level,
+                            course_map[course_id].term,
+                        ),
+                        not course_has_hard_requirements(
+                            course_id,
+                            prerequisite_map,
+                            corequisite_map,
+                        ),
+                        course_map[course_id].course.units >= excess_units,
+                        course_map[course_id].course.units,
+                        course_map[course_id].display_order,
+                    ),
+                    reverse=True,
+                )
+                course_to_move = candidates[0]
 
-def course_is_offered_in_term(curriculum_course, term):
-    """Returns True if the course's official term matches the slot's term."""
-    return curriculum_course.term == term
+                if course_has_hard_requirements(
+                    course_to_move,
+                    prerequisite_map,
+                    corequisite_map,
+                ):
+                    new_slot = next_same_term_after(
+                        course_map[course_to_move].term,
+                        slot_sort_key(*slot),
+                    )
+                else:
+                    new_slot = find_next_fitting_slot(
+                        course_to_move,
+                        slot,
+                        planned_slots,
+                        course_map,
+                        unit_limit_map,
+                        max_curriculum_year + 3,
+                    )
 
+                planned_slots[course_to_move] = new_slot
+                total_units -= course_map[course_to_move].course.units
+                courses_by_slot[slot].remove(course_to_move)
+                changed = True
 
-def can_add_course_to_slot(curriculum_course, slot):
-    """
-    Returns True when:
-      - The course is offered in the slot's term, AND
-      - Adding it will not push the slot over its unit limit.
-    """
-    course = curriculum_course.course
+        if not changed:
+            break
 
-    if not course_is_offered_in_term(curriculum_course, slot["term"]):
-        return False
-
-    if slot["current_units"] + course.units > slot["unit_limit"]:
-        return False
-
-    return True
-
-def generate_rearranged_pos_plan(student, generated_by=None):
-    """
-    Generates a rearranged POS plan enforcing the following academic rules:
-
-    Exclusion
-    - Courses the student has already passed (with credit) are excluded.
-
-    Priority
-    - Failed courses are scheduled before not-yet-taken courses.
-
-    Prerequisites
-    - ALL prerequisites must appear in passed_course_ids.
-    - Failed courses do NOT satisfy prerequisites.
-
-    Co-requisites
-    - Each corequisite must be either already passed OR placed in the same
-      planning slot as the course being scheduled.
-
-    Standing requirement
-    - Evaluated against the student's calculated 75%-threshold year standing.
-
-    Term availability
-    - Courses are only placed in their official offering term.
-
-    Unit limits
-    - first_sem: 25 units, second_sem: 25 units, midterm: 9 units.
-    """
-
-    # Pre-fetch all shared data before the transaction
-    passed_course_ids = get_passed_course_ids(student)
-    failed_course_ids = get_failed_course_ids(student, passed_course_ids)
-    remaining_courses = build_remaining_course_list(
-        student, passed_course_ids, failed_course_ids
-    )
-
-    student_year_standing = calculate_year_standing(student)
-    planning_slots, max_curriculum_year = get_next_terms_from_students(student)
-
-    remaining_course_ids = [cc.course_id for cc in remaining_courses]
-    prerequisite_map, corequisite_map = _build_requirement_maps(remaining_course_ids)
-
-    placed_course_ids = set()
-    blocked_courses = []
     overflow_course_codes = []
 
     with transaction.atomic():
@@ -264,86 +551,48 @@ def generate_rearranged_pos_plan(student, generated_by=None):
 
         display_counter = 1
 
-        for curriculum_course in remaining_courses:
+        for curriculum_course in curriculum_courses:
             course = curriculum_course.course
+            is_failed_retake = course.id in failed_course_ids
 
-            if course.id in placed_course_ids:
-                continue 
-
-            if not standing_requirement_is_met(curriculum_course, student_year_standing):
-                blocked_courses.append(
-                    f"{course.course_code}: standing requirement not met"
-                )
+            if course.id in passed_course_ids:
                 continue
 
-            # Prerequisite check 
-            prereq_ids = prerequisite_map.get(course.id, set())
-            if not prereq_ids.issubset(passed_course_ids):
-                blocked_courses.append(
-                    f"{course.course_code}: prerequisites not completed"
-                )
+            planned_slot = planned_slots.get(course.id)
+            if not planned_slot:
                 continue
 
-            # Corequisite IDs
-            corequisite_ids = corequisite_map.get(course.id, set())
+            original_slot = (curriculum_course.year_level, curriculum_course.term)
+            if not is_failed_retake and planned_slot == original_slot:
+                continue
 
-            placed = False
+            POSPlanItem.objects.create(
+                pos_plan=pos_plan,
+                course=course,
+                planned_year_level=planned_slot[0],
+                planned_term=planned_slot[1],
+                display_order=display_counter,
+                is_auto_assigned=True,
+                is_manually_adjusted=False,
+                is_completed=False,
+                linked_record=latest_failed_records.get(course.id),
+                notes=(
+                    "Retake failed course"
+                    if is_failed_retake
+                    else "Moved due to prerequisite, standing, or unit-limit adjustment"
+                ),
+            )
 
-            for slot in planning_slots:
-                if not can_add_course_to_slot(curriculum_course, slot):
-                    continue
+            display_counter += 1
 
-                slot_course_ids = {item["course"].id for item in slot["courses"]}
+            if planned_slot[0] > max_curriculum_year:
+                overflow_course_codes.append(course.course_code)
 
-                # Every corequisite must be passed already OR in this same slot
-                corequisites_met = all(
-                    coreq_id in passed_course_ids or coreq_id in slot_course_ids
-                    for coreq_id in corequisite_ids
-                )
-                if not corequisites_met:
-                    continue
-
-                POSPlanItem.objects.create(
-                    pos_plan=pos_plan,
-                    course=course,
-                    planned_year_level=slot["year_level"],
-                    planned_term=slot["term"],
-                    display_order=display_counter,
-                    is_auto_assigned=True,
-                    is_manually_adjusted=False,
-                    is_completed=False,
-                    notes="Auto-rearranged by system",
-                )
-
-                slot["courses"].append({
-                    "course": course,
-                    "curriculum_course": curriculum_course,
-                })
-                slot["current_units"] += course.units
-                placed_course_ids.add(course.id)
-                display_counter += 1
-                placed = True
-
-                if slot["beyond_curriculum"]:
-                    overflow_course_codes.append(course.course_code)
-
-                break  # Course placed — move to next course
-
-            if not placed:
-                blocked_courses.append(
-                    f"{course.course_code}: no available slot found"
-                )
-                
-        extra_notes = []
-        if blocked_courses:
-            extra_notes.append("Blocked courses:\n" + "\n".join(blocked_courses))
         if overflow_course_codes:
-            extra_notes.append(
-                f"Courses placed beyond curriculum year {max_curriculum_year}:\n"
+            pos_plan.notes += (
+                f"\n\nCourses placed beyond curriculum year {max_curriculum_year}:\n"
                 + "\n".join(overflow_course_codes)
             )
-        if extra_notes:
-            pos_plan.notes += "\n\n" + "\n\n".join(extra_notes)
             pos_plan.save()
 
     return pos_plan

@@ -16,6 +16,8 @@ from .forms import (
     CourseForm,
     CurriculumCourseForm,
     CourseRequirementForm,
+    GradeUploadForm,
+    StudentImportForm,
 )
 from .models import (
     Student,
@@ -29,9 +31,22 @@ from .upload_services import (
     read_curriculum_file,
     validate_curriculum_rows,
     save_curriculum_rows,
+    validate_preview_rows,
+)
+from .grade_upload_services import (
+    extract_text_from_grade_file,
+    parse_grade_rows_from_text,
+    validate_grade_preview_rows,
+    save_grade_rows,
 )
 
 from .services import get_student_academic_progress
+from .student_import_services import (
+    read_student_import_file,
+    validate_student_import_rows,
+    validate_student_preview_rows,
+    save_student_import_rows,
+)
 
 # Valid grade values: 1.00 to 5.00 in 0.25 increments
 
@@ -258,7 +273,7 @@ def input_grades(request):
         return redirect("student_dashboard")
 
     # All courses in the student's assigned curriculum.
-    curriculum_courses = CurriculumCourse.objects.select_related(
+    curriculum_courses = list(CurriculumCourse.objects.select_related(
         "course",
         "curriculum"
     ).filter(
@@ -274,13 +289,39 @@ def input_grades(request):
         "year_level",
         "pos_term_order",
         "display_order"
-    )
+    ))
     # Pre-load existing records into a dict keyed by course_id for O(1) lookup.
     existing_records = StudentCourseRecord.objects.filter(
         student=student,
-    ).select_related("course")
+    ).select_related("course").order_by("course_id", "-created_at")
 
-    record_map = {record.course_id: record for record in existing_records}
+    record_map = {}
+    passed_course_ids = set()
+    for record in existing_records:
+        if record.course_id not in record_map:
+            record_map[record.course_id] = record
+
+        if (
+            record.status == StudentCourseRecord.RecordStatus.PASSED
+            and record.is_credit_earned
+        ):
+            passed_course_ids.add(record.course_id)
+
+    for curriculum_course in curriculum_courses:
+        record = record_map.get(curriculum_course.course_id)
+        curriculum_course.input_record = record
+        curriculum_course.input_is_locked = curriculum_course.course_id in passed_course_ids
+        curriculum_course.input_is_failed = bool(
+            record
+            and record.status == StudentCourseRecord.RecordStatus.FAILED
+        )
+
+    base_context = {
+        "student": student,
+        "curriculum_courses": curriculum_courses,
+        "record_map": record_map,
+        "passed_course_ids": passed_course_ids,
+    }
 
     if request.method == "POST":
         school_year = request.POST.get("school_year", "").strip()
@@ -291,9 +332,7 @@ def input_grades(request):
         if not school_year:
             messages.error(request, "School year is required.")
             return render(request, "academics/input_grades.html", {
-                "student": student,
-                "curriculum_courses": curriculum_courses,
-                "record_map": record_map,
+                **base_context,
                 "post_data": request.POST,
             })
 
@@ -304,9 +343,29 @@ def input_grades(request):
             )
             # FIX 6: Re-render instead of redirect to preserve entered data.
             return render(request, "academics/input_grades.html", {
-                "student": student,
-                "curriculum_courses": curriculum_courses,
-                "record_map": record_map,
+                **base_context,
+                "post_data": request.POST,
+            })
+
+        locked_submissions = [
+            curriculum_course.course.course_code
+            for curriculum_course in curriculum_courses
+            if (
+                curriculum_course.course_id in passed_course_ids
+                and request.POST.get(
+                    f"grade_{curriculum_course.course_id}",
+                    "",
+                ).strip()
+            )
+        ]
+        if locked_submissions:
+            messages.error(
+                request,
+                "Passed courses cannot be re-input: "
+                + ", ".join(locked_submissions),
+            )
+            return render(request, "academics/input_grades.html", {
+                **base_context,
                 "post_data": request.POST,
             })
 
@@ -321,6 +380,16 @@ def input_grades(request):
                     if grade_raw == "":
                         continue
 
+                    if course.id in passed_course_ids:
+                        messages.error(
+                            request,
+                            f"{course.course_code} already has a passing grade and cannot be re-input.",
+                        )
+                        return render(request, "academics/input_grades.html", {
+                            **base_context,
+                            "post_data": request.POST,
+                        })
+
                     try:
                         grade_value = Decimal(grade_raw)
                     except InvalidOperation:
@@ -329,9 +398,7 @@ def input_grades(request):
                             f"Invalid grade for {course.course_code}.",
                         )
                         return render(request, "academics/input_grades.html", {
-                            "student": student,
-                            "curriculum_courses": curriculum_courses,
-                            "record_map": record_map,
+                            **base_context,
                             "post_data": request.POST,
                         })
 
@@ -342,9 +409,7 @@ def input_grades(request):
                             f"Grade for {course.course_code} must be between 1.00 and 5.00.",
                         )
                         return render(request, "academics/input_grades.html", {
-                            "student": student,
-                            "curriculum_courses": curriculum_courses,
-                            "record_map": record_map,
+                            **base_context,
                             "post_data": request.POST,
                         })
 
@@ -355,9 +420,7 @@ def input_grades(request):
                             f"(e.g. 1.00, 1.25, 1.50).",
                         )
                         return render(request, "academics/input_grades.html", {
-                            "student": student,
-                            "curriculum_courses": curriculum_courses,
-                            "record_map": record_map,
+                            **base_context,
                             "post_data": request.POST,
                         })
 
@@ -384,9 +447,7 @@ def input_grades(request):
                 "An unexpected error occurred while saving grades. Please try again.",
             )
             return render(request, "academics/input_grades.html", {
-                "student": student,
-                "curriculum_courses": curriculum_courses,
-                "record_map": record_map,
+                **base_context,
                 "post_data": request.POST,
             })
 
@@ -394,11 +455,7 @@ def input_grades(request):
         return redirect("my_course_records")
 
     # GET: render the blank/pre-filled grade input form.
-    return render(request, "academics/input_grades.html", {
-        "student": student,
-        "curriculum_courses": curriculum_courses,
-        "record_map": record_map,
-    })
+    return render(request, "academics/input_grades.html", base_context)
 
 
 @student_required
@@ -459,7 +516,7 @@ def curriculum_upload(request):
                 })
 
             except ValidationError as error:
-                messages.error(request, error.message)
+                messages.error(request, " ".join(error.messages))
                 return redirect("curriculum_upload")
 
     else:
@@ -469,17 +526,26 @@ def curriculum_upload(request):
         "form": form
     })
 
-
 @admin_required
 def curriculum_upload_confirm(request):
     if request.method != "POST":
         return redirect("curriculum_upload")
 
-    preview_rows = request.session.get("curriculum_upload_preview")
     curriculum_id = request.session.get("curriculum_upload_curriculum_id")
+    session_preview_rows = request.session.get("curriculum_upload_preview")
 
-    if not preview_rows or not curriculum_id:
+    try:
+        row_count = int(request.POST.get("row_count", 0))
+    except ValueError:
+        messages.error(request, "Invalid upload preview data.")
+        return redirect("curriculum_upload")
+
+    if not curriculum_id or not session_preview_rows:
         messages.error(request, "No curriculum upload preview found.")
+        return redirect("curriculum_upload")
+
+    if row_count != len(session_preview_rows):
+        messages.error(request, "Upload preview data does not match the active session.")
         return redirect("curriculum_upload")
 
     curriculum = Curriculum.objects.filter(id=curriculum_id).first()
@@ -488,11 +554,35 @@ def curriculum_upload_confirm(request):
         messages.error(request, "Selected curriculum was not found.")
         return redirect("curriculum_upload")
 
-    has_errors = any(row.get("errors") for row in preview_rows)
+    edited_rows = []
 
-    if has_errors:
-        messages.error(request, "Cannot save upload because some rows still have errors.")
-        return redirect("curriculum_upload")
+    for index in range(row_count):
+        edited_rows.append({
+            "row_number": request.POST.get(f"row_number_{index}", index + 1),
+            "course_code": request.POST.get(f"course_code_{index}", ""),
+            "course_title": request.POST.get(f"course_title_{index}", ""),
+            "units": request.POST.get(f"units_{index}", ""),
+            "year_level": request.POST.get(f"year_level_{index}", ""),
+            "term": request.POST.get(f"term_{index}", ""),
+            "display_order": request.POST.get(f"display_order_{index}", ""),
+            "is_required": request.POST.get(f"is_required_{index}", ""),
+            "prerequisites": request.POST.get(f"prerequisites_{index}", ""),
+            "corequisites": request.POST.get(f"corequisites_{index}", ""),
+            "standing_requirement": request.POST.get(f"standing_requirement_{index}", ""),
+            "is_elective": request.POST.get(f"is_elective_{index}", ""),
+        })
+
+    preview_rows, errors = validate_preview_rows(edited_rows)
+
+    if errors:
+        messages.error(request, "Some edited rows still have errors. Please fix them before saving.")
+
+        return render(request, "academics/curriculum_upload_preview.html", {
+            "curriculum": curriculum,
+            "preview_rows": preview_rows,
+            "errors": errors,
+            "has_errors": True,
+        })
 
     result = save_curriculum_rows(curriculum, preview_rows)
 
@@ -517,3 +607,180 @@ def curriculum_upload_confirm(request):
         )
 
     return redirect("curriculum_course_list")
+
+@student_required
+def grade_upload(request):
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect("student_dashboard")
+
+    if request.method == "POST":
+        form = GradeUploadForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            school_year = form.cleaned_data["school_year"]
+            uploaded_file = form.cleaned_data["file"]
+
+            try:
+                extracted_text = extract_text_from_grade_file(uploaded_file)
+                preview_rows, errors = parse_grade_rows_from_text(extracted_text, student)
+
+                request.session["grade_upload_preview"] = preview_rows
+                request.session["grade_upload_school_year"] = school_year
+
+                return render(request, "academics/grade_upload_preview.html", {
+                    "student": student,
+                    "school_year": school_year,
+                    "preview_rows": preview_rows,
+                    "errors": errors,
+                    "has_errors": bool(errors),
+                })
+
+            except ValidationError as error:
+                messages.error(request, error.message)
+                return redirect("grade_upload")
+
+    else:
+        form = GradeUploadForm()
+
+    return render(request, "academics/grade_upload.html", {
+        "form": form,
+        "student": student,
+    })
+
+@student_required
+def grade_upload_confirm(request):
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect("student_dashboard")
+
+    if request.method != "POST":
+        return redirect("grade_upload")
+
+    school_year = request.session.get("grade_upload_school_year")
+    row_count = int(request.POST.get("row_count", 0))
+
+    if not school_year:
+        messages.error(request, "No grade upload preview found.")
+        return redirect("grade_upload")
+
+    edited_rows = []
+
+    for index in range(row_count):
+        edited_rows.append({
+            "line_number": request.POST.get(f"line_number_{index}", index + 1),
+            "course_code": request.POST.get(f"course_code_{index}", ""),
+            "grade_value": request.POST.get(f"grade_value_{index}", ""),
+            "remarks": request.POST.get(f"remarks_{index}", ""),
+        })
+
+    preview_rows, errors = validate_grade_preview_rows(edited_rows, student)
+
+    if errors:
+        messages.error(request, "Some rows still have errors. Please fix them before saving.")
+
+        return render(request, "academics/grade_upload_preview.html", {
+            "student": student,
+            "school_year": school_year,
+            "preview_rows": preview_rows,
+            "errors": errors,
+            "has_errors": True,
+        })
+
+    result = save_grade_rows(student, school_year, preview_rows)
+
+    request.session.pop("grade_upload_preview", None)
+    request.session.pop("grade_upload_school_year", None)
+
+    messages.success(
+        request,
+        (
+            "Grade upload saved successfully. "
+            f"New records: {result['saved_count']}. "
+            f"Updated records: {result['updated_count']}."
+        )
+    )
+
+    return redirect("my_course_records")
+
+@admin_required
+def student_import(request):
+    if request.method == "POST":
+        form = StudentImportForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            uploaded_file = form.cleaned_data["file"]
+
+            try:
+                df = read_student_import_file(uploaded_file)
+                preview_rows, errors = validate_student_import_rows(df)
+
+                request.session["student_import_preview"] = preview_rows
+
+                return render(request, "academics/student_import_preview.html", {
+                    "preview_rows": preview_rows,
+                    "errors": errors,
+                    "has_errors": bool(errors),
+                })
+
+            except ValidationError as error:
+                messages.error(request, error.message)
+                return redirect("student_import")
+
+    else:
+        form = StudentImportForm()
+
+    return render(request, "academics/student_import.html", {
+        "form": form
+    })
+
+@admin_required
+def student_import_confirm(request):
+    if request.method != "POST":
+        return redirect("student_import")
+
+    row_count = int(request.POST.get("row_count", 0))
+
+    edited_rows = []
+
+    for index in range(row_count):
+        edited_rows.append({
+            "row_number": request.POST.get(f"row_number_{index}", index + 1),
+            "sr_code": request.POST.get(f"sr_code_{index}", ""),
+            "first_name": request.POST.get(f"first_name_{index}", ""),
+            "last_name": request.POST.get(f"last_name_{index}", ""),
+            "email": request.POST.get(f"email_{index}", ""),
+            "curriculum_code": request.POST.get(f"curriculum_code_{index}", ""),
+            "section_code": request.POST.get(f"section_code_{index}", ""),
+            "status": request.POST.get(f"status_{index}", ""),
+        })
+
+    preview_rows, errors = validate_student_preview_rows(edited_rows)
+
+    if errors:
+        messages.error(request, "Some rows still have errors. Please fix them before saving.")
+
+        return render(request, "academics/student_import_preview.html", {
+            "preview_rows": preview_rows,
+            "errors": errors,
+            "has_errors": True,
+        })
+
+    result = save_student_import_rows(preview_rows)
+
+    request.session.pop("student_import_preview", None)
+
+    messages.success(
+        request,
+        (
+            "Student import saved successfully. "
+            f"User accounts created: {result['created_users']}. "
+            f"Student profiles created: {result['created_students']}."
+        )
+    )
+
+    return redirect("student_list")

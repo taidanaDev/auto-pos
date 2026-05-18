@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="page-container">
+<div class="page-container">
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h2 class="fw-bold mb-0">Student Registration</h2>
         <p class="text-muted mb-0">
             Register a student account manually.
         </p>
+
     </div>
+    <a href="{% url 'student_import' %}" class="btn btn-outline-danger">
+        Import Students
+    </a>
 
     <a href="{% url 'student_list' %}" class="btn btn-outline-danger">
         View Students
@@ -74,28 +80,6 @@
                             <div class="text-danger small">{{ error }}</div>
                         {% endfor %}
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Section Code</label>
-                            {{ form.section_code }}
-                            <div class="form-text">
-                                {{ form.section_code.help_text }}
-                            </div>
-                            {% for error in form.section_code.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Student Status</label>
-                            {{ form.status }}
-                            {% for error in form.status.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
                     <button type="submit" class="btn btn-danger">
                         Register Student
                     </button>
@@ -107,7 +91,7 @@
             </div>
         </div>
     </div>
-
+<!-- 
     <div class="col-md-4">
         <div class="card shadow-sm mb-3">
             <div class="card-header bg-light fw-bold">
@@ -142,8 +126,10 @@
                 <p class="mb-0 small text-muted">
                     The student will be required to change this password on first login.
                 </p>
-            </div>
+            </div> -->
         </div>
     </div>
+</div>
+</div>
 </div>
 {% endblock %}

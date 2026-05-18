@@ -1,36 +1,53 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block app_header %}{% endblock %}
 {% block content %}
-<div class="row align-items-center">
-    <div class="col-md-7">
-        <h1 class="fw-bold">Auto-POS</h1>
-        <p class="lead">
-            Automated System for Program of Study Evaluation and Rearrangement
-        </p>
+<section class="landing-shell">
+    <div class="landing-panel">
+        <div class="landing-top">
+            <img src="{% static 'images/BOT_logo.png' %}" alt="Back onTrack" class="brand-logo">
+            <img src="{% static 'images/bsu-logo.png' %}" alt="Batangas State University" class="bsu-logo">
+        </div>
 
-        <p>
-            This system helps students track academic progress, input course grades,
-            view remaining courses, and generate a rearranged POS for reference.
-        </p>
+        <div class="text-center">
+            <h1 class="fw-bold text-maroon mb-1">Login to your Account</h1>
+            <h2 class="h5 fw-bold muted-copy mb-3">Choose your role to proceed.</h2>
+            <p class="landing-copy">
+                Auto-POS is an Automated Program of Study system designed to help students track academic progress, input or upload grades, generate rearranged POS plans, and download formatted POS reports for academic advising.
+            </p>
+        </div>
 
-        <a href="{% url 'login' %}" class="btn btn-danger">
-            Log In
-        </a>
-    </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-5">
+                <div class="role-card soft-card">
+                    <div class="icon-circle">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">Student</h3>
+                    <p class="muted-copy">
+                        Access your courses, grades, POS, and academic progress.
+                    </p>
+                    <a href="{% url 'login' %}" class="btn btn-danger red-btn w-100">
+                        Login as Student
+                    </a>
+                </div>
+            </div>
 
-    <div class="col-md-5">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="fw-bold">System Features</h5>
-                <ul class="mb-0">
-                    <li>Student academic progress tracking</li>
-                    <li>Course grade recording</li>
-                    <li>Failed and remaining course detection</li>
-                    <li>POS rearrangement</li>
-                    <li>PDF-ready POS output</li>
-                </ul>
+            <div class="col-md-5">
+                <div class="role-card soft-card">
+                    <div class="icon-circle">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">Admin</h3>
+                    <p class="muted-copy">
+                        Manage students, curriculum, courses, and academic records.
+                    </p>
+                    <a href="{% url 'login' %}" class="btn btn-danger red-btn w-100">
+                        Login as Admin
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

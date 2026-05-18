@@ -5,6 +5,8 @@ urlpatterns = [
     # Student registration
     path("students/register/", views.student_registration, name="student_registration"),
     path("students/", views.student_list, name="student_list"),
+    path("students/import/", views.student_import, name="student_import"),
+    path("students/import/confirm/", views.student_import_confirm, name="student_import_confirm"),
 
     # Curriculum
     path("curricula/", views.curriculum_list, name="curriculum_list"),
@@ -25,8 +27,10 @@ urlpatterns = [
     path("course-requirements/add/", views.course_requirement_create, name="course_requirement_create"),
 
     # Students grade input
-    path("students/my-grades/input/", views.input_grades, name="input_grades"),
-    path("students/my-grades/records/", views.my_course_records, name="my_course_records"),
+    path("my-grades/input/", views.input_grades, name="input_grades"),
+    path("my-grades/records/", views.my_course_records, name="my_course_records"),
+    path("my-grades/upload/", views.grade_upload, name="grade_upload"),
+    path("my-grades/upload/confirm/", views.grade_upload_confirm, name="grade_upload_confirm"),
     
     # Student academic progress
     path("my-progress/", views.academic_progress, name="academic_progress"),

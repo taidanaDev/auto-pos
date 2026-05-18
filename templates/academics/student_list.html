@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="page-container">
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h2 class="fw-bold mb-0">Registered Students</h2>
@@ -8,6 +9,9 @@
             List of student accounts in the system.
         </p>
     </div>
+    <a href="{% url 'student_import' %}" class="btn btn-outline-danger">
+        Import Students
+    </a>
 
     <a href="{% url 'student_registration' %}" class="btn btn-danger">
         Register Student
@@ -58,5 +62,6 @@
             </p>
         {% endif %}
     </div>
+</div>
 </div>
 {% endblock %}

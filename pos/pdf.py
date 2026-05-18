@@ -1,7 +1,44 @@
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 
-from academics.models import CourseRequirement, CurriculumCourse, StudentCourseRecord
+from academics.models import CourseRequirement, StudentCourseRecord
+from .services import build_complete_pos_display_items
+
+
+PROGRAM_TITLE_PREFIXES = (
+    "Bachelor of Science in ",
+)
+
+
+def get_evaluation_program_title(program_name):
+    for prefix in PROGRAM_TITLE_PREFIXES:
+        if program_name.lower().startswith(prefix.lower()):
+            return program_name[len(prefix):].strip()
+
+    return program_name
+
+
+def get_student_pdf_display_name(student):
+    user = student.user
+    first_name = (user.first_name or "").strip()
+    last_name = (user.last_name or "").strip()
+
+    middle_initial = (
+        getattr(user, "middle_initial", "")
+        or getattr(user, "middle_name", "")[:1]
+        or getattr(student, "middle_initial", "")
+        or getattr(student, "middle_name", "")[:1]
+    )
+    middle_initial = middle_initial.strip().upper()
+
+    given_name = first_name.upper()
+    if middle_initial:
+        given_name = f"{given_name} {middle_initial}."
+
+    if last_name and given_name:
+        return f"{last_name.upper()}, {given_name}"
+
+    return (last_name or first_name).upper()
 
 
 def get_course_requirement_text(course):
@@ -41,23 +78,16 @@ def get_student_grade_for_course(student, course):
 
 
 def build_pos_pdf_context(student, pos_plan):
-    curriculum_courses = list(
-        CurriculumCourse.objects.select_related("course").filter(
-            curriculum=student.curriculum,
-        ).ordered_by_pos_sequence()
-    )
+    program = student.curriculum.program
+    department = program.department
 
-    course_ids = [item.course_id for item in curriculum_courses]
-
-    latest_records = {}
-    records = StudentCourseRecord.objects.filter(
-        student=student,
-        course_id__in=course_ids,
-    ).order_by("course_id", "-created_at")
-
-    for record in records:
-        if record.course_id not in latest_records:
-            latest_records[record.course_id] = record
+    grouped_items = build_complete_pos_display_items(student, pos_plan)
+    course_ids = {
+        row["course"].id
+        for courses in grouped_items.values()
+        for row in courses
+        if row.get("course")
+    }
 
     requirements = CourseRequirement.objects.select_related(
         "required_course"
@@ -72,29 +102,19 @@ def build_pos_pdf_context(student, pos_plan):
             f"{label}: {requirement.required_course.course_code}"
         )
 
-    grouped_items = {}
-
-    for curriculum_course in curriculum_courses:
-        course = curriculum_course.course
-        key = (curriculum_course.year_level, curriculum_course.term)
-
-        if key not in grouped_items:
-            grouped_items[key] = []
-
-        record = latest_records.get(course.id)
-
-        grouped_items[key].append({
-            "course_code": course.course_code,
-            "course_title": course.course_title,
-            "units": course.units,
-            "requirement_text": " / ".join(requirement_map.get(course.id, [])),
-            "grade": record.grade_value if record and record.grade_value is not None else "",
-            "notes": "",
-        })
+    for courses in grouped_items.values():
+        for row in courses:
+            course = row["course"]
+            row["requirement_text"] = " / ".join(requirement_map.get(course.id, []))
 
     return {
         "student": student,
         "pos_plan": pos_plan,
+        "student_display_name": get_student_pdf_display_name(student),
+        "program_name": program.program_name,
+        "evaluation_program_title": get_evaluation_program_title(program.program_name),
+        "department_name": department.department_name,
+        "academic_year": student.curriculum.academic_year_label or "",
         "grouped_items": grouped_items,
     }
 

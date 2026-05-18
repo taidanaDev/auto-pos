@@ -3,13 +3,12 @@ import functools
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
-from django.db.models import Case, When, IntegerField, Value
 from django.shortcuts import render, redirect, get_object_or_404
 
 from accounts.models import User
 from academics.models import Student
 from .models import POSPlan
-from .services import generate_rearranged_pos_plan
+from .services import build_complete_pos_display_items, generate_rearranged_pos_plan
 from .pdf import build_pos_pdf_context, generate_pos_pdf_response
 
 def student_required(view_func):
@@ -69,24 +68,10 @@ def generated_pos_detail(request, student, pos_plan_id):
 
     pos_plan = get_object_or_404(POSPlan, id=pos_plan_id, student=student)
 
-    items = (
-        pos_plan.items
-        .annotate(
-            term_order=Case(
-                When(planned_term="first_sem", then=1),
-                When(planned_term="second_sem", then=2),
-                When(planned_term="midterm", then=3),
-                default=Value(99),
-                output_field=IntegerField(),
-            )
-        )
-        .order_by("planned_year_level", "term_order", "display_order")
-    )
-
     return render(request, "pos/generated_pos.html", {
         "student": student,
         "pos_plan": pos_plan,
-        "items": items,
+        "grouped_pos_items": build_complete_pos_display_items(student, pos_plan),
     })
 
 

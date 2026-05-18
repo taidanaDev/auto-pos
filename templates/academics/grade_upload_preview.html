@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-heading">
+        <div class="campus-brand">
+            <img src="{% static 'images/bsu-logo.png' %}" alt="BSU Logo" class="bsu-logo">
+            <div>
+                <h1>Grade Upload Preview</h1>
+                <p>Review and edit extracted grades before saving.</p>
+            </div>
+        </div>
+        <a href="{% url 'grade_upload' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+    <div class="soft-card mb-3">
+        <div class="row g-3">
+            <div class="col-md-3"><strong>Student:</strong> {{ student.full_name }}</div>
+            <div class="col-md-3"><strong>SR-Code:</strong> {{ student.sr_code }}</div>
+            <div class="col-md-3"><strong>School Year:</strong> {{ school_year }}</div>
+            <div class="col-md-3"><strong>Total Rows:</strong> {{ preview_rows|length }}</div>
+        </div>
+    </div>
+
+    {% if has_errors %}
+        <div class="alert alert-danger shadow-sm">Some rows have errors. Edit the table below and confirm again.</div>
+    {% else %}
+        <div class="alert alert-success shadow-sm">No validation errors found. You may still edit the extracted rows before saving.</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'grade_upload_confirm' %}">
+        {% csrf_token %}
+        <input type="hidden" name="row_count" value="{{ preview_rows|length }}">
+
+        <div class="table-card">
+            {% if preview_rows %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Line</th>
+                                <th>Course Code</th>
+                                <th>Course Title</th>
+                                <th>Grade</th>
+                                <th>Remarks</th>
+                                <th>Errors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview_rows %}
+                                <tr>
+                                    <td>
+                                        {{ row.line_number }}
+                                        <input type="hidden" name="line_number_{{ forloop.counter0 }}" value="{{ row.line_number }}">
+                                    </td>
+                                    <td style="min-width: 140px;">
+                                        <input type="text" name="course_code_{{ forloop.counter0 }}" value="{{ row.course_code }}" class="form-control form-control-sm">
+                                    </td>
+                                    <td style="min-width: 260px;">{{ row.course_title }}</td>
+                                    <td style="min-width: 110px;">
+                                        <input type="number" name="grade_value_{{ forloop.counter0 }}" value="{{ row.grade_value }}" class="form-control form-control-sm" min="1.00" max="5.00" step="0.25">
+                                    </td>
+                                    <td style="min-width: 240px;">
+                                        <input type="text" name="remarks_{{ forloop.counter0 }}" value="{{ row.remarks }}" class="form-control form-control-sm">
+                                    </td>
+                                    <td style="min-width: 220px;">
+                                        {% if row.errors %}
+                                            {% for error in row.errors %}
+                                                <div class="text-danger small">{{ error }}</div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="badge bg-success">OK</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 d-flex flex-wrap gap-2 justify-content-end">
+                    <a href="{% url 'grade_upload' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-danger red-btn">Confirm and Save</button>
+                </div>
+            {% else %}
+                <div class="p-4">
+                    <p class="muted-copy mb-0">No grade rows extracted.</p>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

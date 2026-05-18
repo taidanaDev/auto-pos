@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -5,7 +7,7 @@ from django.core.validators import RegexValidator
 from django.db.models import Case, When, IntegerField
 
 
-PASSING_GRADE = 3.00
+PASSING_GRADE = Decimal("3.00")
 
 def full_name(self):
     return f"{self.user.first_name} {self.user.last_name}"

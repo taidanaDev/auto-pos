@@ -1,0 +1,694 @@
+:root {
+    --bot-red: #9b111e;
+    --bot-red-2: #a31318;
+    --bot-maroon: #4b0000;
+    --bot-maroon-2: #5c0000;
+    --bot-accent: #ff2f2f;
+    --bot-bg: #f8f3f3;
+    --bot-bg-2: #f6eeee;
+    --bot-text: #3b0a0a;
+    --bot-muted: #756767;
+    --bot-card: #ffffff;
+    --bot-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --bot-soft-shadow: 0 8px 22px rgba(75, 0, 0, 0.12);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bot-bg), #ffffff 46%, var(--bot-bg-2));
+    color: var(--bot-text);
+    font-family: "Poppins", Arial, sans-serif;
+}
+
+body.app-blur-bg {
+    background: #161616;
+}
+
+body.app-blur-bg::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)),
+        url("../images/bsu-front.jpg") center / cover no-repeat;
+    filter: blur(6px);
+    transform: scale(1.04);
+}
+
+body.app-blur-bg::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+body.no-blur-bg {
+    background: linear-gradient(135deg, var(--bot-bg), #ffffff 46%, var(--bot-bg-2));
+}
+
+a {
+    text-decoration: none;
+}
+
+.app-main-wrap {
+    min-height: 100vh;
+    padding: 18px;
+    position: relative;
+    z-index: 0;
+}
+
+.app-flash {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1080;
+    width: min(420px, calc(100vw - 36px));
+}
+
+.brand-logo {
+    max-width: 180px;
+    height: auto;
+}
+
+.global-app-header {
+    width: min(1180px, 100%);
+    margin: 0 auto 16px;
+    padding: 18px 34px;
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr) 92px;
+    align-items: center;
+    gap: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: var(--bot-soft-shadow);
+}
+
+.global-bot-logo {
+    width: 164px;
+    height: auto;
+}
+
+.global-bsu-logo {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    justify-self: end;
+}
+
+.global-campus-title {
+    text-align: center;
+}
+
+.global-campus-title h1 {
+    margin: 0;
+    color: var(--bot-maroon);
+    font-size: clamp(18px, 2.1vw, 24px);
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.global-campus-title p {
+    margin: 4px 0 0;
+    color: var(--bot-muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.global-back-row {
+    width: min(1180px, 100%);
+    margin: 0 auto 18px;
+}
+
+.global-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 48px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: var(--bot-red);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 8px 16px rgba(155, 17, 30, 0.24);
+}
+
+.global-back-btn:hover {
+    background: var(--bot-maroon-2);
+    color: #fff;
+}
+
+.global-back-btn i {
+    font-size: 22px;
+}
+
+.bsu-logo {
+    width: 78px;
+    height: 78px;
+    object-fit: contain;
+}
+
+.soft-card,
+.feature-card,
+.upload-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+    border-radius: 18px;
+    box-shadow: var(--bot-soft-shadow);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+    box-shadow: var(--bot-soft-shadow);
+}
+
+.soft-card {
+    padding: 24px;
+}
+
+.feature-card {
+    padding: 24px;
+    height: 100%;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--bot-shadow);
+}
+
+.icon-circle {
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--bot-red);
+    color: #fff;
+    font-size: 32px;
+}
+
+.red-btn,
+.btn-danger {
+    --bs-btn-bg: var(--bot-red);
+    --bs-btn-border-color: var(--bot-red);
+    --bs-btn-hover-bg: var(--bot-maroon-2);
+    --bs-btn-hover-border-color: var(--bot-maroon-2);
+    --bs-btn-active-bg: var(--bot-maroon);
+    --bs-btn-active-border-color: var(--bot-maroon);
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 8px 16px rgba(155, 17, 30, 0.2);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--bot-red);
+    --bs-btn-border-color: var(--bot-red);
+    --bs-btn-hover-bg: var(--bot-red);
+    --bs-btn-hover-border-color: var(--bot-red);
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.btn-secondary,
+.btn-outline-secondary {
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.text-red {
+    color: var(--bot-red);
+}
+
+.text-maroon {
+    color: var(--bot-maroon);
+}
+
+.muted-copy {
+    color: var(--bot-muted);
+}
+
+.landing-shell {
+    min-height: calc(100vh - 36px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.landing-panel {
+    width: min(1080px, 100%);
+    padding: clamp(28px, 5vw, 52px);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+    border-radius: 16px;
+    box-shadow: var(--bot-shadow);
+}
+
+.landing-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.landing-copy {
+    max-width: 760px;
+    margin: 0 auto 28px;
+    color: var(--bot-muted);
+}
+
+.role-card {
+    max-width: 380px;
+    margin: 0 auto;
+    padding: 28px;
+    text-align: center;
+}
+
+.app-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    min-height: calc(100vh - 36px);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--bot-shadow);
+    overflow: hidden;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 22px;
+    background: linear-gradient(180deg, var(--bot-maroon), #730707);
+    color: #fff;
+}
+
+.sidebar-logo {
+    max-width: 145px;
+    height: auto;
+}
+
+.sidebar-profile {
+    text-align: center;
+}
+
+.avatar-placeholder {
+    width: 112px;
+    height: 112px;
+    margin: 0 auto 14px;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 42px;
+    border: 2px solid rgba(255, 255, 255, 0.24);
+}
+
+.sidebar-name {
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.sidebar-meta {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 10px;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 47, 47, 0.18);
+    font-weight: 600;
+}
+
+.sidebar-nav a:hover {
+    background: rgba(255, 47, 47, 0.34);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    text-align: center;
+}
+
+.sidebar-footer img {
+    max-width: 145px;
+}
+
+.main-content {
+    padding: clamp(24px, 4vw, 42px);
+    background: linear-gradient(135deg, #fff, #fffafa);
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.campus-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.campus-brand h1,
+.campus-brand h2 {
+    margin: 0;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 800;
+    color: var(--bot-maroon);
+}
+
+.campus-brand p {
+    margin: 3px 0 0;
+    color: var(--bot-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-btn {
+    padding: 9px 24px;
+    border-radius: 999px;
+}
+
+.dashboard-title {
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.15;
+    font-weight: 800;
+    color: var(--bot-maroon);
+}
+
+.stat-card {
+    padding: 20px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--bot-soft-shadow);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+}
+
+.stat-label {
+    margin-bottom: 6px;
+    color: var(--bot-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    margin: 0;
+    color: var(--bot-maroon);
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.progress {
+    height: 14px;
+    border-radius: 999px;
+    background: #ead6d6;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--bot-red), var(--bot-accent));
+}
+
+.section-title {
+    color: var(--bot-red);
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.course-list {
+    display: grid;
+    gap: 8px;
+    max-height: 360px;
+    overflow: auto;
+}
+
+.course-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff7f7;
+    color: var(--bot-text);
+}
+
+.module-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--bot-soft-shadow);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+}
+
+.module-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--bot-muted);
+}
+
+.module-card h3 i {
+    color: var(--bot-red);
+}
+
+.module-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(75, 0, 0, 0.16);
+}
+
+.page-container {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.page-heading h1,
+.page-heading h2 {
+    margin: 0;
+    color: var(--bot-maroon);
+    font-weight: 800;
+}
+
+.upload-shell {
+    min-height: calc(100vh - 36px);
+    display: grid;
+    place-items: center;
+}
+
+.upload-card {
+    width: min(820px, 100%);
+    padding: clamp(26px, 5vw, 52px);
+}
+
+.upload-dropzone {
+    margin: 24px 0;
+    padding: 34px 20px;
+    border: 2px dashed rgba(75, 0, 0, 0.18);
+    border-radius: 16px;
+    background: #fbf8f8;
+    text-align: center;
+}
+
+.upload-dropzone i {
+    color: #bbb;
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.upload-dropzone input[type="file"] {
+    max-width: 460px;
+    margin: 14px auto 0;
+}
+
+.table-card {
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 16px;
+    box-shadow: var(--bot-soft-shadow);
+    border: 1px solid rgba(75, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.table-card .table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    color: var(--bot-maroon);
+    background: #fff1f1;
+    border-bottom: 1px solid rgba(75, 0, 0, 0.12);
+    font-weight: 800;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+.badge.bg-danger,
+.badge.bg-secondary {
+    border-radius: 999px;
+}
+
+.alert-error {
+    --bs-alert-color: #58151c;
+    --bs-alert-bg: #f8d7da;
+    --bs-alert-border-color: #f1aeb5;
+    --bs-alert-link-color: #58151c;
+}
+
+.pos-note {
+    white-space: pre-wrap;
+    font-family: inherit;
+}
+
+@media (max-width: 991.98px) {
+    .global-app-header {
+        grid-template-columns: 150px minmax(0, 1fr) 72px;
+        padding: 16px 20px;
+    }
+
+    .global-bot-logo {
+        width: 140px;
+    }
+
+    .global-bsu-logo {
+        width: 66px;
+        height: 66px;
+    }
+
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-radius: 0;
+    }
+
+    .sidebar-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .top-header,
+    .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .landing-top {
+        align-items: center;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-main-wrap {
+        padding: 10px;
+    }
+
+    .global-app-header {
+        grid-template-columns: 1fr 56px;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .global-bot-logo {
+        width: 132px;
+    }
+
+    .global-campus-title {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        text-align: left;
+    }
+
+    .global-campus-title h1 {
+        font-size: 16px;
+    }
+
+    .global-campus-title p {
+        font-size: 11px;
+    }
+
+    .global-bsu-logo {
+        width: 54px;
+        height: 54px;
+    }
+
+    .global-back-btn {
+        min-height: 44px;
+        padding: 9px 14px;
+        font-size: 16px;
+    }
+
+    .landing-top {
+        gap: 12px;
+    }
+
+    .brand-logo {
+        max-width: 150px;
+    }
+
+    .bsu-logo {
+        width: 62px;
+        height: 62px;
+    }
+
+    .sidebar-nav {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content {
+        padding: 20px 14px;
+    }
+
+    .soft-card,
+    .feature-card,
+    .upload-card {
+        border-radius: 14px;
+    }
+}

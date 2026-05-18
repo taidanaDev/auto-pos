@@ -1,52 +1,38 @@
 {% extends 'base.html' %}
+{% load static %}
+
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-7">
-        <div class="card shadow-sm">
-            <div class="card-header bg-danger text-white">
-                Generate POS Plan
+<section class="upload-shell">
+    <div class="upload-card">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <img src="{% static 'images/BOT_logo.png' %}" alt="Back onTrack" class="brand-logo mb-3">
+                <h1 class="fw-bold text-maroon mb-1">Generate Rearranged POS Plan</h1>
+                <p class="muted-copy mb-0">Create a draft POS based on your current course records.</p>
             </div>
-
-            <div class="card-body">
-                <h4 class="fw-bold">Generate Rearranged POS Plan</h4>
-
-                <p class="text-muted">
-                    The system will generate a draft POS based on your current course records.
-                </p>
-
-                <div class="alert alert-info">
-                    <strong>Rearrangement rules:</strong>
-                    the system will exclude completed courses, prioritize failed courses, check prerequisites, check year standing, follow course term availability, and respect unit limits.
-                </div>
-
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <p class="mb-1">
-                            <strong>Student:</strong> {{ student.full_name }}
-                        </p>
-                        <p class="mb-1">
-                            <strong>SR-Code:</strong> {{ student.sr_code }}
-                        </p>
-                        <p class="mb-0">
-                            <strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}
-                        </p>
-                    </div>
-                </div>
-
-                <form method="POST">
-                    {% csrf_token %}
-
-                    <button type="submit" class="btn btn-danger">
-                        Generate POS
-                    </button>
-
-                    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">
-                        Cancel
-                    </a>
-                </form>
-            </div>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
         </div>
+
+        <div class="alert alert-info shadow-sm">
+            The system will exclude completed courses, prioritize failed courses, check prerequisites, check year standing, follow course term availability, and respect unit limits.
+        </div>
+
+        <div class="soft-card mb-4 p-3">
+            <p class="mb-1"><strong>Student:</strong> {{ student.full_name }}</p>
+            <p class="mb-1"><strong>SR-Code:</strong> {{ student.sr_code }}</p>
+            <p class="mb-0"><strong>Curriculum:</strong> {{ student.curriculum.curriculum_code }}</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+                <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger red-btn">
+                    <i class="fa-solid fa-arrows-rotate me-1"></i> Generate POS
+                </button>
+            </div>
+        </form>
     </div>
-</div>
+</section>
 {% endblock %}

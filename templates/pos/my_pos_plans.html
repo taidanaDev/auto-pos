@@ -1,30 +1,27 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold mb-0">My POS Plans</h2>
-        <p class="text-muted mb-0">
-            Generated POS plans for {{ student.full_name }}.
-        </p>
+<div class="page-container">
+    <div class="page-heading">
+        <div class="campus-brand">
+            <div>
+                <h1>My POS Plans</h1>
+                <p>Generated POS plans for {{ student.full_name }}.</p>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'generate_pos' %}" class="btn btn-danger red-btn">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Generate POS
+            </a>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Dashboard</a>
+        </div>
     </div>
 
-    <div>
-        <a href="{% url 'generate_pos' %}" class="btn btn-danger">
-            Generate POS
-        </a>
-        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">
-            Dashboard
-        </a>
-    </div>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-header bg-danger text-white">
-        POS Plans
-    </div>
-
-    <div class="card-body">
+    <div class="table-card">
+        <div class="p-3 border-bottom">
+            <h2 class="h5 fw-bold text-maroon mb-0">POS Plans</h2>
+        </div>
         {% if pos_plans %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
@@ -42,9 +39,7 @@
                         {% for plan in pos_plans %}
                             <tr>
                                 <td>{{ plan.created_at }}</td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ plan.get_status_display }}</span>
-                                </td>
+                                <td><span class="badge bg-secondary">{{ plan.get_status_display }}</span></td>
                                 <td>
                                     {% if plan.is_current %}
                                         <span class="badge bg-success">Yes</span>
@@ -65,9 +60,9 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted mb-0">
-                No POS plans found.
-            </p>
+            <div class="p-4">
+                <p class="muted-copy mb-0">No POS plans found.</p>
+            </div>
         {% endif %}
     </div>
 </div>

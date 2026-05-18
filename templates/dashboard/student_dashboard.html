@@ -1,129 +1,152 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block app_header %}{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold mb-3">Student Dashboard</h2>
-
-<p class="text-muted">
-    Welcome, {{ user.first_name }} {{ user.last_name }}.
-</p>
-{% if progress %}
-
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Progress</h6>
-                <h3 class="fw-bold">{{ progress.progress_percentage }}%</h3>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-profile">
+            <div class="avatar-placeholder">
+                <i class="fa-solid fa-user-graduate"></i>
             </div>
+            <p class="sidebar-name">
+                {% if student %}{{ student.full_name }}{% else %}{{ user.first_name }} {{ user.last_name }}{% endif %}
+            </p>
+            {% if student %}
+                <p class="sidebar-meta fw-bold">{{ student.sr_code }}</p>
+                <p class="sidebar-meta">{{ student.curriculum.program.program_name }}</p>
+                <p class="sidebar-meta">{{ student.curriculum.curriculum_code }}</p>
+            {% endif %}
+            {% if progress %}
+                <p class="sidebar-meta">Year Standing: {{ progress.year_standing }}</p>
+            {% endif %}
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Earned Units</h6>
-                <h3 class="fw-bold text-success">{{ progress.earned_units }}</h3>
+        <nav class="sidebar-nav">
+            <a href="{% url 'my_pos_plans' %}"><i class="fa-solid fa-eye"></i> View POS</a>
+            <a href="{% url 'input_grades' %}"><i class="fa-solid fa-pen"></i> Input Grades</a>
+            <a href="{% url 'grade_upload' %}"><i class="fa-solid fa-upload"></i> Upload Grades</a>
+            <a href="{% url 'academic_progress' %}"><i class="fa-solid fa-chart-line"></i> Academic Progress</a>
+            <a href="{% url 'generate_pos' %}"><i class="fa-solid fa-arrows-rotate"></i> Rearrange POS</a>
+            <a href="{% url 'my_pos_plans' %}"><i class="fa-solid fa-file-arrow-down"></i> Download POS</a>
+            <a href="{% url 'my_pos_plans' %}"><i class="fa-solid fa-folder-open"></i> My POS Plans</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <img src="{% static 'images/BOT_logo.png' %}" alt="Back onTrack" class="sidebar-logo">
+        </div>
+    </aside>
+
+    <section class="main-content">
+        <header class="top-header">
+            <div class="campus-brand">
+                <img src="{% static 'images/bsu-logo.png' %}" alt="BSU Logo" class="bsu-logo">
+                <div>
+                    <h1>Batangas State University - Alangilan Campus</h1>
+                    <p>Auto POS: Automated Program of Study Rearrangement</p>
+                </div>
             </div>
-        </div>
-    </div>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger logout-btn">Logout</button>
+            </form>
+        </header>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Remaining Units</h6>
-                <h3 class="fw-bold text-danger">{{ progress.remaining_units }}</h3>
+        <h2 class="dashboard-title mb-4">
+            Hi, Welcome Back {% if student %} {{ student.user.first_name }}{% else %}@{{ user.first_name }}{% endif %}!
+        </h2>
+
+        {% if progress %}
+            <div class="row g-3 mb-4">
+                <div class="col-lg-4">
+                    <div class="soft-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <p class="stat-label">Progress Overview</p>
+                                <h3 class="stat-value">{{ progress.progress_percentage }}%</h3>
+                            </div>
+                            <div class="icon-circle m-0" style="width:64px;height:64px;font-size:24px;">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" role="progressbar" style="width: {{ progress.progress_percentage|default:0 }}%;" aria-valuenow="{{ progress.progress_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="muted-copy mb-0">Current Year Standing: <strong>{{ progress.year_standing }}</strong></p>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="stat-card">
+                                <p class="stat-label">Earned Units</p>
+                                <p class="stat-value">{{ progress.earned_units }}</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="stat-card">
+                                <p class="stat-label">Remaining Units</p>
+                                <p class="stat-value">{{ progress.remaining_units }}</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="stat-card">
+                                <p class="stat-label">Completed</p>
+                                <p class="stat-value">{{ progress.completed_count }}</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="stat-card">
+                                <p class="stat-label">Failed</p>
+                                <p class="stat-value">{{ progress.failed_count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Failed Courses</h6>
-                <h3 class="fw-bold text-warning">{{ progress.failed_count }}</h3>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="soft-card h-100">
+                        <h3 class="section-title mb-3">Remaining Courses</h3>
+                        {% if progress.remaining_courses %}
+                            <div class="course-list">
+                                {% for item in progress.remaining_courses|slice:":10" %}
+                                    <div class="course-row">
+                                        <span><strong>{{ item.course.course_code }}</strong> {{ item.course.course_title }}</span>
+                                        <span>{{ item.course.units }}u</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="muted-copy mb-0">No remaining courses.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="soft-card h-100">
+                        <h3 class="section-title mb-3">Completed Courses</h3>
+                        {% if progress.completed_courses %}
+                            <div class="course-list">
+                                {% for record in progress.completed_courses|slice:":10" %}
+                                    <div class="course-row">
+                                        <span><strong>{{ record.course.course_code }}</strong> {{ record.course.course_title }}</span>
+                                        <span>{{ record.grade_value }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="muted-copy mb-0">No completed courses yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
-{% endif %}
-{% if progress %}
-<p class="text-muted">
-    Current Year Standing:
-    <strong>{{ progress.year_standing }}</strong>
-</p>
-{% endif %}
-
-
-<div class="row g-3">
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">View POS</h5>
-                <p>View your current Program of Study.</p>
-                <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-danger btn-sm">
-                    Open
-                </a>
+        {% else %}
+            <div class="soft-card">
+                <p class="mb-0 muted-copy">No progress data available yet.</p>
             </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Input Grades</h5>
-                <p>Input grades per course for academic progress tracking.</p>
-                <a href="{% url 'input_grades' %}" class="btn btn-outline-danger btn-sm">
-                    Open
-                </a>
-                <a href="{% url 'my_course_records' %}" class="btn btn-outline-secondary btn-sm">
-                    View Records
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Academic Progress</h5>
-                <p>Check completed, failed, and remaining courses.</p>
-                <a href="{% url 'academic_progress' %}" class="btn btn-outline-danger btn-sm">
-                    View Progress
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Generate POS</h5>
-                <p>Generate a draft POS based on your current course records.</p>
-
-                <a href="{% url 'generate_pos' %}" class="btn btn-outline-danger btn-sm">
-                    Generate
-                </a>
-
-                <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-secondary btn-sm">
-                    My Plans
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="fw-bold">Download POS PDF</h5>
-                <p>Preview and download a formatted POS document.</p>
-                <a href="{% url 'my_pos_plans' %}" class="btn btn-outline-danger btn-sm">
-                    Open POS Plans
-                </a>
-            </div>
-        </div>
-    </div>
-
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

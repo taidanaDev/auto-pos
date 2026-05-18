@@ -371,6 +371,9 @@ class StudentGradeForm(forms.Form):
         return remarks.strip()
 
 class CurriculumUploadForm(forms.Form):
+    ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".docx", ".pdf"}
+    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+
     curriculum = forms.ModelChoiceField(
         queryset=Curriculum.objects.filter(is_active=True),
         widget=forms.Select(attrs={
@@ -381,7 +384,72 @@ class CurriculumUploadForm(forms.Form):
     file = forms.FileField(
         widget=forms.FileInput(attrs={
             "class": "form-control",
+            "accept": ".csv,.xlsx,.xls,.docx,.pdf"
+        }),
+        help_text="Upload a CSV, Excel, DOCX, or text-based PDF curriculum file."
+    )
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data["file"]
+        file_name = uploaded_file.name.lower()
+
+        if not any(file_name.endswith(extension) for extension in self.ALLOWED_EXTENSIONS):
+            raise ValidationError("Unsupported file type. Upload CSV, Excel, DOCX, or text-based PDF.")
+
+        if uploaded_file.size > self.MAX_UPLOAD_SIZE:
+            raise ValidationError("File size must not exceed 10 MB.")
+
+        return uploaded_file
+
+class GradeUploadForm(forms.Form):
+    ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
+    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+
+    school_year = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Example: 2025-2026"
+        })
+    )
+
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={
+            "class": "form-control",
+            "accept": ".pdf,.jpg,.jpeg,.png"
+        }),
+        help_text="Upload a PDF, JPG, JPEG, or PNG grade file."
+    )
+
+    def clean_school_year(self):
+        school_year = self.cleaned_data["school_year"].strip()
+
+        if not re.match(r"^\d{4}-\d{4}$", school_year):
+            raise ValidationError("School year must follow the format YYYY-YYYY.")
+
+        start_year, end_year = [int(part) for part in school_year.split("-")]
+        if end_year != start_year + 1:
+            raise ValidationError("School year must cover one academic year, e.g. 2025-2026.")
+
+        return school_year
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data["file"]
+        file_name = uploaded_file.name.lower()
+
+        if not any(file_name.endswith(extension) for extension in self.ALLOWED_EXTENSIONS):
+            raise ValidationError("Unsupported file type. Upload PDF, JPG, JPEG, or PNG.")
+
+        if uploaded_file.size > self.MAX_UPLOAD_SIZE:
+            raise ValidationError("File size must not exceed 10 MB.")
+
+        return uploaded_file
+    
+class StudentImportForm(forms.Form):
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={
+            "class": "form-control",
             "accept": ".csv,.xlsx,.xls"
         }),
-        help_text="Upload a CSV or Excel file using the required curriculum format."
+        help_text="Upload a CSV or Excel file containing student registration records."
     )
