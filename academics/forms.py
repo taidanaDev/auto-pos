@@ -6,9 +6,6 @@ from django.core.exceptions import ValidationError
 
 from accounts.models import User
 from .models import (
-    Department,
-    Program,
-    StudentCourseRecord,
     Curriculum,
     Student,
     Course,
@@ -201,8 +198,6 @@ class CourseForm(forms.ModelForm):
             }),
             "units": forms.NumberInput(attrs={
                 "class": "form-control",
-                # FIX #3: Added min/max HTML attributes as UX hints.
-                # Server-side enforcement is in clean_units() below.
                 "min": "1",
                 "max": "12",
                 "placeholder": "Example: 3"
@@ -210,9 +205,6 @@ class CourseForm(forms.ModelForm):
             "is_elective": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
-    # FIX #3: Added server-side range validation for units.
-    # Without this, values like 0, -1, or 999 pass form validation silently.
-    # Adjust the max ceiling to match your curriculum's actual upper bound.
     def clean_units(self):
         units = self.cleaned_data.get("units")
 
@@ -280,12 +272,7 @@ class CurriculumCourseForm(forms.ModelForm):
         course = cleaned_data.get("course")
 
         if curriculum and course:
-            # FIX #5: Added form-level duplicate check for (curriculum, course).
-            # Without this, submitting the same pair twice bypasses form
-            # validation and raises an unhandled IntegrityError at the DB level.
-            # self.instance.pk excludes the current record when editing so that
-            # saving an existing CurriculumCourse without changing course/curriculum
-            # does not falsely trigger this error.
+
             qs = CurriculumCourse.objects.filter(
                 curriculum=curriculum,
                 course=course,
@@ -325,13 +312,6 @@ class CourseRequirementForm(forms.ModelForm):
             if course == required_course:
                 raise ValidationError("A course cannot require itself.")
 
-            # FIX #6: Added form-level duplicate check for (course, required_course).
-            # Without this, submitting the same requirement pair twice raises
-            # an unhandled IntegrityError at the DB level instead of a clean
-            # form validation error.
-            # self.instance.pk excludes the current record when editing so that
-            # saving an existing CourseRequirement without changes does not
-            # falsely trigger this error.
             qs = CourseRequirement.objects.filter(
                 course=course,
                 required_course=required_course,
@@ -376,8 +356,6 @@ class StudentGradeForm(forms.Form):
 
         if grade is None:
             return grade  # optional field, skip
-
-        from decimal import Decimal
         valid_grades = {
             Decimal("1.00") + Decimal("0.25") * i for i in range(17)
         }
@@ -391,3 +369,19 @@ class StudentGradeForm(forms.Form):
     def clean_remarks(self):
         remarks = self.cleaned_data.get("remarks", "")
         return remarks.strip()
+
+class CurriculumUploadForm(forms.Form):
+    curriculum = forms.ModelChoiceField(
+        queryset=Curriculum.objects.filter(is_active=True),
+        widget=forms.Select(attrs={
+            "class": "form-select"
+        })
+    )
+
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={
+            "class": "form-control",
+            "accept": ".csv,.xlsx,.xls"
+        }),
+        help_text="Upload a CSV or Excel file using the required curriculum format."
+    )

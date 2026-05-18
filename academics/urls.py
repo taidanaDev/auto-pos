@@ -9,6 +9,8 @@ urlpatterns = [
     # Curriculum
     path("curricula/", views.curriculum_list, name="curriculum_list"),
     path("curricula/add/", views.curriculum_create, name="curriculum_create"),
+    path("curricula/upload/", views.curriculum_upload, name="curriculum_upload"),
+    path("curricula/upload/confirm/", views.curriculum_upload_confirm, name="curriculum_upload_confirm"),
 
     # Courses
     path("courses/", views.course_list, name="course_list"),

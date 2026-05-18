@@ -3,13 +3,14 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.db.models import Case, When, IntegerField
+from django.core.exceptions import ValidationError
 
 from accounts.models import User
 from .forms import (
+    CurriculumUploadForm,
     ManualStudentRegistrationForm,
     CurriculumForm,
     CourseForm,
@@ -24,18 +25,21 @@ from .models import (
     CourseRequirement,
     StudentCourseRecord,
 )
+from .upload_services import (
+    read_curriculum_file,
+    validate_curriculum_rows,
+    save_curriculum_rows,
+)
 
 from .services import get_student_academic_progress
-# ---------------------------------------------------------------------------
+
 # Valid grade values: 1.00 to 5.00 in 0.25 increments
-# ---------------------------------------------------------------------------
+
 VALID_GRADES = {Decimal("1.00") + Decimal("0.25") * i for i in range(17)}
 
 
-# ---------------------------------------------------------------------------
-# Access-control decorators
-# ---------------------------------------------------------------------------
 
+# Access-control decorators
 def admin_required(view_func):
     """Allow only authenticated ADMIN users."""
     @functools.wraps(view_func)
@@ -54,8 +58,6 @@ def admin_required(view_func):
 
 def student_required(view_func):
     """Allow only authenticated STUDENT users."""
-    # FIX 1: Added @functools.wraps — without it the wrapper loses the
-    # original function name/docstring, breaking Django's view introspection.
     @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -70,12 +72,6 @@ def student_required(view_func):
     return wrapper
 
 
-# ---------------------------------------------------------------------------
-# Admin views
-# FIX 2: Removed redundant @login_required from all admin views.
-#         admin_required already checks is_authenticated, so stacking
-#         @login_required on top is unnecessary and misleading.
-# ---------------------------------------------------------------------------
 
 @admin_required
 def student_registration(request):
@@ -251,10 +247,7 @@ def course_requirement_create(request):
     })
 
 
-# ---------------------------------------------------------------------------
 # Student views
-# ---------------------------------------------------------------------------
-
 @student_required
 def input_grades(request):
     # Guard: ensure the logged-in user has a student profile.
@@ -317,10 +310,6 @@ def input_grades(request):
                 "post_data": request.POST,
             })
 
-        # ----------------------------------------------------------------
-        # FIX 7: Wrap the entire save loop in transaction.atomic() so a
-        # mid-loop failure does not leave a partial write in the database.
-        # ----------------------------------------------------------------
         try:
             with transaction.atomic():
                 for curriculum_course in curriculum_courses:
@@ -332,8 +321,6 @@ def input_grades(request):
                     if grade_raw == "":
                         continue
 
-                    # FIX 3: Use Decimal instead of float to avoid
-                    # floating-point imprecision on grade comparisons/storage.
                     try:
                         grade_value = Decimal(grade_raw)
                     except InvalidOperation:
@@ -361,8 +348,6 @@ def input_grades(request):
                             "post_data": request.POST,
                         })
 
-                    # FIX 4: Enforce 0.25 increment server-side.
-                    # The HTML step attribute is a browser hint only and can be bypassed.
                     if grade_value not in VALID_GRADES:
                         messages.error(
                             request,
@@ -376,8 +361,6 @@ def input_grades(request):
                             "post_data": request.POST,
                         })
 
-                    # FIX 5: Set status based on grade instead of always
-                    # defaulting to IN_PROGRESS.
                     if grade_value <= Decimal("3.00"):
                         status = StudentCourseRecord.RecordStatus.PASSED
                     else:
@@ -451,3 +434,86 @@ def academic_progress(request):
         "student": student,
         "progress": progress_data,
     })
+
+@admin_required
+def curriculum_upload(request):
+    if request.method == "POST":
+        form = CurriculumUploadForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            curriculum = form.cleaned_data["curriculum"]
+            uploaded_file = form.cleaned_data["file"]
+
+            try:
+                df = read_curriculum_file(uploaded_file)
+                preview_rows, errors = validate_curriculum_rows(df)
+
+                request.session["curriculum_upload_preview"] = preview_rows
+                request.session["curriculum_upload_curriculum_id"] = curriculum.id
+
+                return render(request, "academics/curriculum_upload_preview.html", {
+                    "curriculum": curriculum,
+                    "preview_rows": preview_rows,
+                    "errors": errors,
+                    "has_errors": bool(errors),
+                })
+
+            except ValidationError as error:
+                messages.error(request, error.message)
+                return redirect("curriculum_upload")
+
+    else:
+        form = CurriculumUploadForm()
+
+    return render(request, "academics/curriculum_upload.html", {
+        "form": form
+    })
+
+
+@admin_required
+def curriculum_upload_confirm(request):
+    if request.method != "POST":
+        return redirect("curriculum_upload")
+
+    preview_rows = request.session.get("curriculum_upload_preview")
+    curriculum_id = request.session.get("curriculum_upload_curriculum_id")
+
+    if not preview_rows or not curriculum_id:
+        messages.error(request, "No curriculum upload preview found.")
+        return redirect("curriculum_upload")
+
+    curriculum = Curriculum.objects.filter(id=curriculum_id).first()
+
+    if not curriculum:
+        messages.error(request, "Selected curriculum was not found.")
+        return redirect("curriculum_upload")
+
+    has_errors = any(row.get("errors") for row in preview_rows)
+
+    if has_errors:
+        messages.error(request, "Cannot save upload because some rows still have errors.")
+        return redirect("curriculum_upload")
+
+    result = save_curriculum_rows(curriculum, preview_rows)
+
+    request.session.pop("curriculum_upload_preview", None)
+    request.session.pop("curriculum_upload_curriculum_id", None)
+
+    messages.success(
+        request,
+        (
+            "Curriculum upload saved successfully. "
+            f"Created courses: {result['created_courses']}. "
+            f"Updated courses: {result['updated_courses']}. "
+            f"Curriculum courses added: {result['created_curriculum_courses']}. "
+            f"Requirements added: {result['created_requirements']}."
+        )
+    )
+
+    if result["missing_requirement_courses"]:
+        messages.warning(
+            request,
+            "Some requirements were skipped because required courses were missing."
+        )
+
+    return redirect("curriculum_course_list")

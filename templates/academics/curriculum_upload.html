@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Upload Curriculum</h2>
+        <p class="text-muted mb-0">
+            Upload curriculum courses using CSV or Excel.
+        </p>
+    </div>
+
+    <a href="{% url 'curriculum_course_list' %}" class="btn btn-secondary">
+        Back
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                Curriculum Upload
+            </div>
+
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Curriculum</label>
+                        {{ form.curriculum }}
+                        {% for error in form.curriculum.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">CSV/Excel File</label>
+                        {{ form.file }}
+                        <div class="form-text">{{ form.file.help_text }}</div>
+                        {% for error in form.file.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">
+                        Upload and Preview
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                Required Columns
+            </div>
+
+            <div class="card-body">
+                <ul class="mb-0 small">
+                    <li>course_code</li>
+                    <li>course_title</li>
+                    <li>units</li>
+                    <li>year_level</li>
+                    <li>term</li>
+                    <li>display_order</li>
+                    <li>is_required</li>
+                    <li>prerequisites</li>
+                    <li>corequisites</li>
+                    <li>standing_requirement</li>
+                    <li>is_elective</li>
+                </ul>
+
+                <hr>
+
+                <p class="small mb-1">
+                    <strong>Term values:</strong>
+                </p>
+                <code>first_sem, second_sem, midterm</code>
+
+                <hr>
+
+                <p class="small mb-1">
+                    <strong>Multiple prerequisites:</strong>
+                </p>
+                <code>CpE 404; ECE 421</code>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

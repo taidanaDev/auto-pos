@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Curriculum Upload Preview</h2>
+        <p class="text-muted mb-0">
+            Review extracted curriculum rows before saving.
+        </p>
+    </div>
+
+    <a href="{% url 'curriculum_upload' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p class="mb-1">
+            <strong>Curriculum:</strong> {{ curriculum.curriculum_code }}
+        </p>
+
+        <p class="mb-0">
+            <strong>Total Rows:</strong> {{ preview_rows|length }}
+        </p>
+    </div>
+</div>
+
+{% if has_errors %}
+    <div class="alert alert-danger">
+        Some rows have errors. Please fix your file and upload again.
+    </div>
+{% else %}
+    <div class="alert alert-success">
+        No validation errors found. You can now confirm and save the upload.
+    </div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Row</th>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th>Units</th>
+                        <th>Year</th>
+                        <th>Term</th>
+                        <th>Order</th>
+                        <th>Required</th>
+                        <th>Prerequisites</th>
+                        <th>Corequisites</th>
+                        <th>Standing</th>
+                        <th>Elective</th>
+                        <th>Errors</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in preview_rows %}
+                        <tr>
+                            <td>{{ row.row_number }}</td>
+                            <td>{{ row.course_code }}</td>
+                            <td>{{ row.course_title }}</td>
+                            <td>{{ row.units }}</td>
+                            <td>{{ row.year_level }}</td>
+                            <td>{{ row.term }}</td>
+                            <td>{{ row.display_order }}</td>
+                            <td>{{ row.is_required }}</td>
+                            <td>{{ row.prerequisites|default:"—" }}</td>
+                            <td>{{ row.corequisites|default:"—" }}</td>
+                            <td>{{ row.standing_requirement|default:"—" }}</td>
+                            <td>{{ row.is_elective }}</td>
+                            <td>
+                                {% if row.errors %}
+                                    {% for error in row.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-success small">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if not has_errors %}
+            <form method="POST" action="{% url 'curriculum_upload_confirm' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    Confirm and Save
+                </button>
+
+                <a href="{% url 'curriculum_upload' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
