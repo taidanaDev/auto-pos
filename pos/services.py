@@ -415,6 +415,7 @@ def generate_rearranged_pos_plan(student, generated_by=None):
     max_curriculum_year = max(item.year_level for item in curriculum_courses)
     planned_slots = {}
     active_course_ids = []
+    initial_planned_slots = {}  # Track initial assignments for comparison
 
     for curriculum_course in curriculum_courses:
         course_id = curriculum_course.course_id
@@ -432,6 +433,9 @@ def generate_rearranged_pos_plan(student, generated_by=None):
                 curriculum_course.year_level,
                 curriculum_course.term,
             )
+        
+        # Store the initial assignment
+        initial_planned_slots[course_id] = planned_slots[course_id]
 
     for _ in range(50):
         changed = False
@@ -563,7 +567,15 @@ def generate_rearranged_pos_plan(student, generated_by=None):
                 continue
 
             original_slot = (curriculum_course.year_level, curriculum_course.term)
-            if not is_failed_retake and planned_slot == original_slot:
+            
+            # Include if: (1) failed retake, or (2) course was adjusted from initial plan
+            is_adjusted = (
+                is_failed_retake or 
+                (initial_planned_slots.get(course.id) != planned_slot) or
+                (planned_slot != original_slot)
+            )
+            
+            if not is_adjusted:
                 continue
 
             POSPlanItem.objects.create(
