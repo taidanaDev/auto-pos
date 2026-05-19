@@ -80,6 +80,24 @@
                             <div class="text-danger small">{{ error }}</div>
                         {% endfor %}
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Section Code</label>
+                        {{ form.section_code }}
+                        {% for error in form.section_code.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <small class="form-text text-muted d-block mt-1">{{ form.section_code.help_text }}</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        {{ form.status }}
+                        {% for error in form.status.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
                     <button type="submit" class="btn btn-danger">
                         Register Student
                     </button>
@@ -108,7 +126,7 @@
                 </ul>
             </div>
         </div>
-
+-->
         <div class="card shadow-sm">
             <div class="card-header bg-light fw-bold">
                 Temporary Password
@@ -126,7 +144,7 @@
                 <p class="mb-0 small text-muted">
                     The student will be required to change this password on first login.
                 </p>
-            </div> -->
+            </div>
         </div>
     </div>
 </div>
