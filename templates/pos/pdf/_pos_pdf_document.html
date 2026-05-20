@@ -20,8 +20,7 @@
                         Tel Nos.: (+63 43) 425-0139 local 2121 / 2221
                     </p>
                     <p class="pos-pdf-contact">
-                        E-mail Address: coe.alangilan@g.batstate-u.edu.ph |
-                        Website Address: http://www.batstate-u.edu.ph
+                        E-mail Address: coe.alangilan@g.batstate-u.edu.ph | Website Address: http://www.batstate-u.edu.ph
                     </p>
                 </td>
 
@@ -58,7 +57,7 @@
         {% if grouped_items %}
             {% for group, courses in grouped_items.items %}
                 <table class="pos-pdf-table">
-                    <thead>
+                    <thead class="pos-pdf-table-header">
                         <tr class="pos-pdf-year-row">
                             <th colspan="5">
                                 {% if group.0 == 1 %}
@@ -71,6 +70,8 @@
                                     FOURTH YEAR
                                 {% elif group.0 == 5 %}
                                     FIFTH YEAR
+                                {% elif group.0 == 6 %}
+                                    YEAR 6
                                 {% else %}
                                     YEAR {{ group.0 }}
                                 {% endif %}
@@ -114,20 +115,14 @@
         {% endif %}
 
         <div class="pos-pdf-signature-section">
-            <div class="pos-pdf-signature-block">
-                <p>Evaluated by:</p>
-                <p class="pos-pdf-signature-date">Date:</p>
-            </div>
+            <p>Evaluated by:</p>
+            <p style="margin-bottom: 1cm;">Date:</p>
 
-            <div class="pos-pdf-signature-block">
-                <p>Checked and Reviewed:</p>
-                <p class="pos-pdf-signature-date">Date:</p>
-            </div>
+            <p>Checked and Reviewed:</p>
+            <p style="margin-bottom: 1cm;">Date:</p>
 
-            <div class="pos-pdf-signature-block">
-                <p>Approved by:</p>
-                <p class="pos-pdf-signature-date">Date:</p>
-            </div>
+            <p>Approved by:</p>
+            <p style="margin-bottom: 1cm;">Date:</p>
         </div>
     </div>
 
