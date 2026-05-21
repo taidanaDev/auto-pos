@@ -27,7 +27,7 @@
                     <p class="muted-copy">
                         Access your courses, grades, POS, and academic progress.
                     </p>
-                    <a href="{% url 'login' %}" class="btn btn-danger red-btn w-100">
+                    <a href="{% url 'login_with_role' 'student' %}" class="btn btn-danger red-btn w-100">
                         Login as Student
                     </a>
                 </div>
@@ -42,7 +42,7 @@
                     <p class="muted-copy">
                         Manage students, curriculum, courses, and academic records.
                     </p>
-                    <a href="{% url 'login' %}" class="btn btn-danger red-btn w-100">
+                    <a href="{% url 'login_with_role' 'admin' %}" class="btn btn-danger red-btn w-100">
                         Login as Admin
                     </a>
                 </div>

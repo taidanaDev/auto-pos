@@ -12,8 +12,16 @@
 
         <div class="text-center mb-4">
             <img src="{% static 'images/BOT_logo.png' %}" alt="Back onTrack" class="brand-logo mb-3">
-            <h1 class="fw-bold text-maroon mb-1">Login to your Account</h1>
-            <p class="muted-copy mb-0">Use your registered Auto-POS credentials.</p>
+            {% if role == 'admin' %}
+                <h1 class="fw-bold text-maroon mb-1">Admin Login</h1>
+                <p class="muted-copy mb-0">Enter your admin credentials to access the management dashboard.</p>
+            {% elif role == 'student' %}
+                <h1 class="fw-bold text-maroon mb-1">Student Login</h1>
+                <p class="muted-copy mb-0">Enter your student credentials to access your account.</p>
+            {% else %}
+                <h1 class="fw-bold text-maroon mb-1">Login to your Account</h1>
+                <p class="muted-copy mb-0">Use your registered Auto-POS credentials.</p>
+            {% endif %}
         </div>
 
         <form method="POST">
@@ -28,6 +36,11 @@
             <div class="mb-3">
                 <label class="form-label fw-bold">Email Address</label>
                 {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
             </div>
 
             <div class="mb-4">
@@ -38,6 +51,11 @@
                         <i class="fa-solid fa-eye"></i>
                     </button>
                 </div>
+                {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.password.errors }}
+                    </div>
+                {% endif %}
             </div>
 
             <button type="submit" class="btn btn-danger red-btn w-100">
@@ -72,6 +90,12 @@
 
     #id_password {
         padding-right: 40px;
+    }
+
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
     }
 </style>
 

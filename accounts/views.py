@@ -8,12 +8,27 @@ from .forms import EmailLoginForm, FirstLoginPasswordChangeForm
 from .models import User
 
 
-def login_view(request):
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+
+from .forms import EmailLoginForm, FirstLoginPasswordChangeForm
+from .models import User
+
+
+def login_view(request, role=None):
     if request.user.is_authenticated:
         return redirect_user_by_role(request.user)
 
+    # Validate role parameter
+    valid_roles = [User.Role.ADMIN, User.Role.STUDENT]
+    if role and role not in valid_roles:
+        return redirect("login")
+
     if request.method == "POST":
-        form = EmailLoginForm(request.POST)
+        form = EmailLoginForm(request.POST, expected_role=role)
 
         if form.is_valid():
             user = form.cleaned_data["user"]
@@ -25,10 +40,11 @@ def login_view(request):
             return redirect_user_by_role(user)
 
     else:
-        form = EmailLoginForm()
+        form = EmailLoginForm(expected_role=role)
 
     return render(request, "accounts/login.html", {
-        "form": form
+        "form": form,
+        "role": role
     })
 
 
@@ -37,7 +53,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "You have been logged out.")
-    return redirect("login")
+    return redirect("landing_page")
 
 
 @login_required
