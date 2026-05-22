@@ -90,9 +90,21 @@ class ManualStudentRegistrationForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
+        sr_code = self.cleaned_data.get("sr_code", "").lower()
 
+        # Validate email format: sr_code@g.batstate-u.edu.ph
         if not email.endswith(f"@{GSUITE_DOMAIN}"):
             raise ValidationError(f"Only institutional G-Suite emails (@{GSUITE_DOMAIN}) are allowed.")
+
+        # Extract email username (part before @)
+        email_username = email.split("@")[0]
+
+        # Check if email username matches SR-Code
+        if sr_code and email_username != sr_code:
+            raise ValidationError(
+                f"Email must follow the format: {sr_code}@{GSUITE_DOMAIN}. "
+                f"You entered: {email}"
+            )
 
         if User.objects.filter(email=email).exists():
             raise ValidationError("This email is already registered.")

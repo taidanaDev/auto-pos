@@ -18,6 +18,7 @@ REQUIRED_STUDENT_COLUMNS = [
 ]
 
 VALID_STUDENT_STATUS = ["regular", "irregular"]
+GSUITE_DOMAIN = "g.batstate-u.edu.ph"
 
 
 def clean_text(value):
@@ -84,6 +85,33 @@ def generate_temporary_password(sr_code, last_name):
     return f"{sr_code}{cleaned_last_name}"
 
 
+def validate_student_email(email, sr_code):
+    """
+    Validate that student email follows the format: sr_code@g.batstate-u.edu.ph
+    Returns error message if invalid, None if valid.
+    """
+    if not email:
+        return "Email is required."
+
+    email = email.lower().strip()
+
+    # Check domain
+    if not email.endswith(f"@{GSUITE_DOMAIN}"):
+        return f"Email must use the institutional domain (@{GSUITE_DOMAIN})."
+
+    # Extract email username (part before @)
+    email_username = email.split("@")[0]
+
+    # Check if email username matches SR-Code
+    if email_username != sr_code.lower():
+        return (
+            f"Email must match SR-Code format. "
+            f"For SR-Code '{sr_code}', email should be '{sr_code.lower()}@{GSUITE_DOMAIN}'."
+        )
+
+    return None
+
+
 def validate_student_import_rows(df):
     preview_rows = []
     errors = []
@@ -113,8 +141,10 @@ def validate_student_import_rows(df):
         if not last_name:
             row_errors.append("Last name is required.")
 
-        if not email:
-            row_errors.append("Email is required.")
+        # Validate email format (must match sr_code@g.batstate-u.edu.ph)
+        email_error = validate_student_email(email, sr_code)
+        if email_error:
+            row_errors.append(email_error)
 
         if not curriculum_code:
             row_errors.append("Curriculum code is required.")

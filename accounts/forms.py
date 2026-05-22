@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 
 
-
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
@@ -19,6 +18,10 @@ class EmailLoginForm(forms.Form):
             "placeholder": "Enter your password"
         })
     )
+
+    def __init__(self, *args, expected_role=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.expected_role = expected_role
 
     def clean(self):
         cleaned_data = super().clean()
@@ -37,6 +40,13 @@ class EmailLoginForm(forms.Form):
 
             if not user.is_active:
                 raise forms.ValidationError("This account is inactive.")
+
+            # If a specific role was expected, validate it matches
+            if self.expected_role and user.role != self.expected_role:
+                raise forms.ValidationError(
+                    f"This account is not registered as a {self.expected_role.capitalize()}. "
+                    f"Please use the {user.role.capitalize()} login instead."
+                )
 
             cleaned_data["user"] = user
 

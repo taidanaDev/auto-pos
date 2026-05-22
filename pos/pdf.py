@@ -1,7 +1,9 @@
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from collections import OrderedDict
 
 from academics.models import CourseRequirement, CurriculumCourse, StudentCourseRecord
+from .services import build_complete_pos_display_items
 
 
 PROGRAM_TITLE_PREFIXES = (
@@ -54,20 +56,57 @@ def get_student_grade_for_course(student, course):
 
 
 def build_pos_pdf_context(student, pos_plan):
+    """
+    Build PDF context with auto-arranged courses using the same logic
+    as the display views. This applies intelligent rearrangement based on
+    prerequisites, unit limits, and course completion status.
+    """
     program = student.curriculum.program
     department = program.department
 
-    # Use the same grouped/adjusted course list as the POS display (auto-arranged)
-    from pos.services import build_complete_pos_display_items
+    # Use the auto-arrange display logic for PDF generation
     grouped_items = build_complete_pos_display_items(student, pos_plan)
+
+    # Convert display items to PDF format with requirement text
+    pdf_grouped_items = OrderedDict()
+    
+    for key, courses in grouped_items.items():
+        pdf_grouped_items[key] = []
+        for course_item in courses:
+            course = course_item["course"]
+            
+            # Get requirement text for the course
+            requirements = CourseRequirement.objects.select_related(
+                "required_course"
+            ).filter(
+                course=course
+            )
+            
+            requirement_texts = []
+            for requirement in requirements:
+                label = "Pre" if requirement.requirement_type == "prerequisite" else "Co"
+                requirement_texts.append(
+                    f"{label}: {requirement.required_course.course_code}"
+                )
+            
+            pdf_grouped_items[key].append({
+                "course_code": course_item["course_code"],
+                "course_title": course_item["course_title"],
+                "units": course_item["units"],
+                "requirement_text": " / ".join(requirement_texts),
+                "grade": course_item["grade"],
+                "notes": course_item["notes"],
+                "is_rearranged": course_item["source"] == "rearranged",
+            })
 
     return {
         "student": student,
+        "student_display_name": f"{student.user.first_name} {student.user.last_name}",
         "pos_plan": pos_plan,
         "evaluation_program_title": get_evaluation_program_title(program.program_name),
         "department_name": department.department_name,
         "academic_year": student.curriculum.academic_year_label or "",
-        "grouped_items": grouped_items,
+        "grouped_items": pdf_grouped_items,
     }
 
 
