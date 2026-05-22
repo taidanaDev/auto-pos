@@ -87,7 +87,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # DATABASE (RENDER READY)
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = config("DATABASE_URL", default=None)
 
 if DATABASE_URL:
     DATABASES = {
@@ -96,15 +96,23 @@ if DATABASE_URL:
             conn_max_age=600
         )
     }
-else:
+elif config("DB_NAME", default=None):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME"),
-            "USER": os.environ.get("DB_USER"),
-            "PASSWORD": os.environ.get("DB_PASSWORD"),
-            "HOST": os.environ.get("DB_HOST"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
+            "NAME": config("DB_NAME"),
+            "USER": config("DB_USER"),
+            "PASSWORD": config("DB_PASSWORD"),
+            "HOST": config("DB_HOST"),
+            "PORT": config("DB_PORT", default="5432"),
+        }
+    }
+else:
+    # Development: Use SQLite by default
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 

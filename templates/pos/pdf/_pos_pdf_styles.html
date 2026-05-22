@@ -1,7 +1,7 @@
 <style>
     @page {
         size: 8in 13in;
-        margin: 1mm;
+        margin: 18mm 15mm 18mm 15mm; /* top, right, bottom, left */
     }
 
     .pos-pdf-preview-actions {
@@ -19,7 +19,7 @@
     }
 
     .pos-pdf-document {
-        width: 8in;
+        width: 100%;
         min-height: 13in;
         margin: 0 auto;
         padding-bottom: 42px;
@@ -45,12 +45,14 @@
         width: 100%;
         margin: 0 auto;
         text-align: center;
+        box-sizing: border-box;
     }
 
     .pos-pdf-header-table {
         width: 100%;
         border-collapse: collapse;
         margin: 0 auto;
+        box-sizing: border-box;
     }
 
     .pos-pdf-logo-cell {
@@ -60,8 +62,12 @@
     }
 
     .pos-pdf-logo-cell img {
-        width: 115px;
+        max-width: 110px;
+        max-height: 110px;
+        width: auto;
         height: auto;
+        display: block;
+        margin: 0 auto;
     }
 
     .pos-pdf-header-text-cell {
@@ -166,10 +172,11 @@
     }
 
     .pos-pdf-table {
-        width: 82%;
+        width: 100%;
         margin: 0 auto 18px;
         border-collapse: collapse;
         font-size: 15px;
+        box-sizing: border-box;
     }
 
     .pos-pdf-table th,
