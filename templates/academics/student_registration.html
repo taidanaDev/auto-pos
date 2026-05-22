@@ -11,17 +11,18 @@
         </p>
 
     </div>
-    <a href="{% url 'student_import' %}" class="btn btn-outline-danger">
-        Import Students
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'student_import' %}" class="btn btn-outline-danger">
+            Import Students
+        </a>
 
-    <a href="{% url 'student_list' %}" class="btn btn-outline-danger">
-        View Students
-    </a>
+        <a href="{% url 'student_list' %}" class="btn btn-danger">
+            View Students
+        </a>
+    </div>
 </div>
 
 <div class="row">
-    <div class="col-md-8">
         <div class="card shadow-sm">
             <div class="card-header bg-danger text-white">
                 Manual Student Registration
@@ -87,7 +88,6 @@
                         {% for error in form.section_code.errors %}
                             <div class="text-danger small">{{ error }}</div>
                         {% endfor %}
-                        <small class="form-text text-muted d-block mt-1">{{ form.section_code.help_text }}</small>
                     </div>
 
                     <div class="mb-3">
@@ -102,16 +102,12 @@
                         Register Student
                     </button>
 
-                    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
-                        Back
-                    </a>
                 </form>
             </div>
-        </div>
     </div>
-<!-- 
-    <div class="col-md-4">
-        <div class="card shadow-sm mb-3">
+
+    <!-- <div class="col-md-4">
+        div class="card shadow-sm mb-3">
             <div class="card-header bg-light fw-bold">
                 Section Code Format
             </div>
@@ -125,8 +121,8 @@
                     <li>1 = section number</li>
                 </ul>
             </div>
-        </div>
--->
+        </div> 
+
         <div class="card shadow-sm">
             <div class="card-header bg-light fw-bold">
                 Temporary Password
@@ -146,7 +142,7 @@
                 </p>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 </div>
 </div>

@@ -9,13 +9,10 @@
             List of student accounts in the system.
         </p>
     </div>
-    <a href="{% url 'student_import' %}" class="btn btn-outline-danger">
-        Import Students
-    </a>
-
-    <a href="{% url 'student_registration' %}" class="btn btn-danger">
-        Register Student
-    </a>
+     <div class="d-flex gap-2">
+        <a href="{% url 'student_import' %}" class="btn btn-outline-danger"> Import Students</a>
+        <a href="{% url 'student_registration' %}" class="btn btn-danger"> Register Student  </a>
+    </div>
 </div>
 
 <div class="card shadow-sm">

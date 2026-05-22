@@ -78,7 +78,7 @@ class ManualStudentRegistrationForm(forms.Form):
         self.fields["curriculum"].queryset = Curriculum.objects.filter(is_active=True)
 
     def clean_sr_code(self):
-        sr_code = self.cleaned_data["sr_code"]
+        sr_code = self.cleaned_data["sr_code"].strip()
 
         if not re.match(r"^\d{2}-\d{5}$", sr_code):
             raise ValidationError("SR-Code must follow the format YY-NNNNN, e.g. 23-00001.")
@@ -87,6 +87,34 @@ class ManualStudentRegistrationForm(forms.Form):
             raise ValidationError("This SR-Code is already registered.")
 
         return sr_code
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data["first_name"].strip()
+
+        if not first_name:
+            raise ValidationError("First name cannot be empty.")
+
+        if not any(char.isalnum() for char in first_name):
+            raise ValidationError("First name must contain at least one letter.")
+
+        if len(first_name) < 2:
+            raise ValidationError("First name must be at least 2 characters long.")
+
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data["last_name"].strip()
+
+        if not last_name:
+            raise ValidationError("Last name cannot be empty.")
+
+        if not any(char.isalnum() for char in last_name):
+            raise ValidationError("Last name must contain at least one letter or number.")
+
+        if len(last_name) < 2:
+            raise ValidationError("Last name must be at least 2 characters long.")
+
+        return last_name
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
@@ -112,7 +140,7 @@ class ManualStudentRegistrationForm(forms.Form):
         return email
 
     def clean_section_code(self):
-        section_code = self.cleaned_data["section_code"]
+        section_code = self.cleaned_data["section_code"].strip()
 
         if len(section_code) != 4:
             raise ValidationError("Section code must be exactly 4 digits.")
@@ -174,6 +202,42 @@ class CurriculumForm(forms.ModelForm):
     # FIX #2: Added server-side range validation for total_units.
     # The widget's min attribute is a browser hint only and can be bypassed —
     # this ensures the value is always validated on the server.
+    def clean_curriculum_code(self):
+        curriculum_code = self.cleaned_data.get("curriculum_code", "").strip()
+
+        if not curriculum_code:
+            raise ValidationError("Curriculum code cannot be empty.")
+
+        if not any(char.isalnum() for char in curriculum_code):
+            raise ValidationError("Curriculum code must contain at least one letter or number.")
+
+        return curriculum_code
+
+    def clean_curriculum_name(self):
+        curriculum_name = self.cleaned_data.get("curriculum_name", "").strip()
+
+        if not curriculum_name:
+            raise ValidationError("Curriculum name cannot be empty.")
+
+        if not any(char.isalnum() for char in curriculum_name):
+            raise ValidationError("Curriculum name must contain at least one letter or number.")
+
+        if len(curriculum_name) < 5:
+            raise ValidationError("Curriculum name must be at least 5 characters long.")
+
+        return curriculum_name
+
+    def clean_academic_year_label(self):
+        academic_year_label = self.cleaned_data.get("academic_year_label", "").strip()
+
+        if not academic_year_label:
+            raise ValidationError("Academic year label cannot be empty.")
+
+        if not any(char.isalnum() for char in academic_year_label):
+            raise ValidationError("Academic year label must contain at least one letter or number.")
+
+        return academic_year_label
+
     def clean_total_units(self):
         total_units = self.cleaned_data.get("total_units")
 
@@ -216,6 +280,31 @@ class CourseForm(forms.ModelForm):
             }),
             "is_elective": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def clean_course_code(self):
+        course_code = self.cleaned_data.get("course_code", "").strip()
+
+        if not course_code:
+            raise ValidationError("Course code cannot be empty.")
+
+        if not any(char.isalnum() for char in course_code):
+            raise ValidationError("Course code must contain at least one letter or number.")
+
+        return course_code
+
+    def clean_course_title(self):
+        course_title = self.cleaned_data.get("course_title", "").strip()
+
+        if not course_title:
+            raise ValidationError("Course title cannot be empty.")
+
+        if not any(char.isalnum() for char in course_title):
+            raise ValidationError("Course title must contain at least one letter")
+
+        if len(course_title) < 3:
+            raise ValidationError("Course title must be at least 3 characters long.")
+
+        return course_title
 
     def clean_units(self):
         units = self.cleaned_data.get("units")
@@ -277,6 +366,20 @@ class CurriculumCourseForm(forms.ModelForm):
             raise ValidationError("Year level must be from 1 to 9.")
 
         return year_level
+
+    def clean_standing_requirement(self):
+        standing_requirement = self.cleaned_data.get("standing_requirement", "").strip()
+
+        if not standing_requirement:
+            return standing_requirement  # optional field
+
+        if not any(char.isalnum() for char in standing_requirement):
+            raise ValidationError("Standing requirement must contain at least one letter")
+
+        if len(standing_requirement) < 3:
+            raise ValidationError("Standing requirement must be at least 3 characters long.")
+
+        return standing_requirement
 
     def clean(self):
         cleaned_data = super().clean()
@@ -379,8 +482,12 @@ class StudentGradeForm(forms.Form):
 
         return grade
     def clean_remarks(self):
-        remarks = self.cleaned_data.get("remarks", "")
-        return remarks.strip()
+        remarks = self.cleaned_data.get("remarks", "").strip()
+        
+        if remarks and not any(char.isalnum() for char in remarks):
+            raise ValidationError("Remarks must contain at least one letter")
+
+        return remarks
 
 class CurriculumUploadForm(forms.Form):
     ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".docx", ".pdf"}
@@ -410,6 +517,9 @@ class CurriculumUploadForm(forms.Form):
 
         if uploaded_file.size > self.MAX_UPLOAD_SIZE:
             raise ValidationError("File size must not exceed 10 MB.")
+
+        if uploaded_file.size == 0:
+            raise ValidationError("File cannot be empty.")
 
         return uploaded_file
 
@@ -455,6 +565,9 @@ class GradeUploadForm(forms.Form):
         if uploaded_file.size > self.MAX_UPLOAD_SIZE:
             raise ValidationError("File size must not exceed 10 MB.")
 
+        if uploaded_file.size == 0:
+            raise ValidationError("File cannot be empty.")
+
         return uploaded_file
     
 class StudentImportForm(forms.Form):
@@ -465,3 +578,19 @@ class StudentImportForm(forms.Form):
         }),
         help_text="Upload a CSV or Excel file containing student registration records."
     )
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data["file"]
+        file_name = uploaded_file.name.lower()
+
+        allowed_extensions = {".csv", ".xlsx", ".xls"}
+        if not any(file_name.endswith(extension) for extension in allowed_extensions):
+            raise ValidationError("Unsupported file type. Upload CSV or Excel (.xlsx, .xls) files only.")
+
+        if uploaded_file.size > 10 * 1024 * 1024:
+            raise ValidationError("File size must not exceed 10 MB.")
+
+        if uploaded_file.size == 0:
+            raise ValidationError("File cannot be empty.")
+
+        return uploaded_file

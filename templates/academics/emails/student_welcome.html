@@ -16,18 +16,47 @@
             overflow: hidden;
         }
         .header {
-            background-color: #8B0000;
-            color: white;
+            background-color: #f5f5f5;
+            border-bottom: 3px solid #8B0000;
             padding: 20px;
             text-align: center;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 20px;
         }
-        .header p {
+        .header-logo {
+            flex: 0 0 60px;
+        }
+        .header-logo img {
+            max-width: 60px;
+            height: auto;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #8B0000;
+            font-weight: bold;
+        }
+        .header-title p {
             margin: 5px 0 0 0;
-            font-size: 14px;
+            font-size: 13px;
+            color: #666;
+        }
+        .header-seal {
+            flex: 0 0 60px;
+        }
+        .header-seal img {
+            max-width: 60px;
+            height: auto;
         }
         .content {
             padding: 30px;
@@ -98,8 +127,18 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Auto POS System</h1>
-            <p>Batangas State University - Alangilan Campus</p>
+            <div class="header-content">
+                <div class="header-logo">
+                    <img src="{{ logo_url }}" alt="BackOnTrack Logo" style="max-width: 60px;">
+                </div>
+                <div class="header-title">
+                    <h1>Batangas State University - Alangilan Campus</h1>
+                    <p>Auto POS: Automated Program of Course Rearrangement</p>
+                </div>
+                <div class="header-seal">
+                    <img src="{{ seal_url }}" alt="BSU Seal" style="max-width: 60px;">
+                </div>
+            </div>
         </div>
 
         <div class="content">

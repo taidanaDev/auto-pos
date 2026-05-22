@@ -39,7 +39,7 @@ from .grade_upload_services import (
     validate_grade_preview_rows,
     save_grade_rows,
 )
-
+from .email_service import send_student_account_welcome_email_async
 from .services import get_student_academic_progress
 from .student_import_services import (
     read_student_import_file,
@@ -119,6 +119,15 @@ def student_registration(request):
                     section_code=data["section_code"],
                     status=data["status"],
                 )
+
+            # Send welcome email with credentials (non-blocking)
+            # This is called after transaction.atomic() completes to ensure
+            # the student record is committed before sending email
+            send_student_account_welcome_email_async(
+                student_user,
+                data["sr_code"],
+                temporary_password
+            )
 
             # Return to success page with credentials
             return render(request, "academics/student_registration_success.html", {

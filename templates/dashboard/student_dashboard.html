@@ -54,7 +54,7 @@
         </header>
 
         <h2 class="dashboard-title mb-4">
-            Hi, Welcome Back {% if student %} {{ student.user.first_name }}{% else %}@{{ user.first_name }}{% endif %}!
+            Hi, Welcome Back {% if student %} {{ student.user.first_name }}{% else %}{{ user.first_name }}{% endif %}!
         </h2>
 
         {% if progress %}

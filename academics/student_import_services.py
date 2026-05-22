@@ -1,10 +1,13 @@
 import pandas as pd
+import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from accounts.models import User
 from .models import Student, Curriculum
+
+logger = logging.getLogger(__name__)
 
 
 REQUIRED_STUDENT_COLUMNS = [
@@ -298,6 +301,9 @@ def validate_student_preview_rows(preview_rows):
 def save_student_import_rows(preview_rows):
     created_users = 0
     created_students = 0
+    
+    # Import here to avoid circular imports
+    from .email_service import send_student_account_welcome_email_async
 
     for row in preview_rows:
         curriculum = Curriculum.objects.get(
@@ -332,6 +338,20 @@ def save_student_import_rows(preview_rows):
         )
 
         created_students += 1
+        
+        # Send welcome email (non-blocking - errors won't stop import)
+        try:
+            send_student_account_welcome_email_async(
+                student_user,
+                row["sr_code"],
+                temporary_password
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to send welcome email during bulk import for "
+                f"{student_user.email} (SR-Code: {row['sr_code']}): {str(e)}",
+                exc_info=True
+            )
 
     return {
         "created_users": created_users,

@@ -10,9 +10,6 @@
                 <h1 class="fw-bold text-maroon mb-1">Upload Curriculum File</h1>
                 <p class="muted-copy mb-0">Accepted formats: CSV, Excel, DOCX, PDF</p>
             </div>
-            <a href="{% url 'curriculum_course_list' %}" class="btn btn-outline-secondary">
-                Cancel
-            </a>
         </div>
 
         <form method="POST" enctype="multipart/form-data">
@@ -46,7 +43,6 @@
             </p>
 
             <div class="d-flex flex-wrap justify-content-end gap-2">
-                <a href="{% url 'curriculum_course_list' %}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-danger red-btn">Upload and Preview</button>
             </div>
         </form>
