@@ -87,7 +87,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # DATABASE (RENDER READY)
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = config("DATABASE_URL", default=None)
 
 if DATABASE_URL:
     DATABASES = {
@@ -96,7 +96,7 @@ if DATABASE_URL:
             conn_max_age=600
         )
     }
-else:
+elif config("DB_NAME", default=None):
     DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

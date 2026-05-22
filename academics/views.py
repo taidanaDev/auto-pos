@@ -120,11 +120,13 @@ def student_registration(request):
                     status=data["status"],
                 )
 
-            messages.success(
-                request,
-                f"Student registered successfully. Temporary password: {temporary_password}",
-            )
-            return redirect("student_registration")
+            # Return to success page with credentials
+            return render(request, "academics/student_registration_success.html", {
+                "student_email": data["email"],
+                "student_name": f"{data['first_name']} {data['last_name']}",
+                "sr_code": data["sr_code"],
+                "temporary_password": temporary_password,
+            })
 
     else:
         form = ManualStudentRegistrationForm()
