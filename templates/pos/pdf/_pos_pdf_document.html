@@ -1,38 +1,30 @@
 {% load static %}
 
 <div class="pos-pdf-document">
-    <div class="pos-pdf-content">
+
+    {# ── FIRST PAGE HEADER (only shown once at top of document) ── #}
+    <div class="pos-pdf-page-header">
         <table class="pos-pdf-header-table">
             <tr>
                 <td class="pos-pdf-logo-cell">
                     <img src="{% static 'images/bsu-logo.png' %}" alt="BSU Logo">
                 </td>
-
                 <td class="pos-pdf-header-text-cell">
                     <p class="pos-pdf-republic">Republic of the Philippines</p>
                     <p class="pos-pdf-bsu-name">BATANGAS STATE UNIVERSITY</p>
                     <p class="pos-pdf-national-engineering">The National Engineering University</p>
                     <p class="pos-pdf-campus">Alangilan Campus</p>
-                    <p class="pos-pdf-address">
-                        Golden Country Homes, Alangilan Batangas City, Batangas, Philippines 4200
-                    </p>
-                    <p class="pos-pdf-contact">
-                        Tel Nos.: (+63 43) 425-0139 local 2121 / 2221
-                    </p>
-                    <p class="pos-pdf-contact">
-                        E-mail Address: coe.alangilan@g.batstate-u.edu.ph | Website Address: http://www.batstate-u.edu.ph
-                    </p>
+                    <p class="pos-pdf-address">Golden Country Homes, Alangilan Batangas City, Batangas, Philippines 4200</p>
+                    <p class="pos-pdf-contact">Tel Nos.: (+63 43) 425-0139 local 2121 / 2221</p>
+                    <p class="pos-pdf-contact">E-mail Address: coe.alangilan@g.batstate-u.edu.ph | Website Address: http://www.batstate-u.edu.ph</p>
                 </td>
-
                 <td class="pos-pdf-header-spacer-cell"></td>
             </tr>
         </table>
 
         <hr class="pos-pdf-header-line">
 
-        <p class="pos-pdf-college-line">
-            College of Engineering - {{ department_name }}
-        </p>
+        <p class="pos-pdf-college-line">College of Engineering - {{ department_name }}</p>
 
         <div class="pos-pdf-document-title">
             {{ evaluation_program_title|upper }}<br>
@@ -49,84 +41,121 @@
             <tr>
                 <td class="pos-pdf-label-cell"><strong>SR-code:</strong></td>
                 <td>{{ student.sr_code }}</td>
-                <td class="pos-pdf-label-cell" style="width: 20%;"><strong>Academic Year:</strong></td>
+                <td class="pos-pdf-label-cell"><strong>Academic Year:</strong></td>
                 <td>{{ academic_year }}</td>
             </tr>
         </table>
+    </div>
 
+    {# ── RUNNING HEADER for pages 2+ (WeasyPrint @page named string) ── #}
+    {# This div is referenced by CSS position:running(continuationHeader) #}
+    <div class="pos-pdf-running-header">
+        <table class="pos-pdf-continuation-header-table">
+            <tr>
+                <td class="pos-pdf-continuation-logo-cell">
+                    <img src="{% static 'images/bsu-logo.png' %}" alt="BSU Logo">
+                </td>
+                <td class="pos-pdf-continuation-header-text-cell">
+                    <p class="pos-pdf-continuation-republic">Republic of the Philippines</p>
+                    <p class="pos-pdf-continuation-bsu-name">BATANGAS STATE UNIVERSITY</p>
+                    <p class="pos-pdf-continuation-national-engineering">The National Engineering University</p>
+                    <p class="pos-pdf-continuation-campus">Alangilan Campus</p>
+                    <p class="pos-pdf-continuation-address">Golden Country Homes, Alangilan Batangas City, Batangas, Philippines 4200</p>
+                    <p class="pos-pdf-continuation-contact">Tel Nos.: (+63 43) 425-0139 local 2121 / 2221</p>
+                    <p class="pos-pdf-continuation-contact">E-mail Address: coe.alangilan@g.batstate-u.edu.ph | Website Address: http://www.batstate-u.edu.ph</p>
+                </td>
+                <td class="pos-pdf-continuation-header-spacer-cell"></td>
+            </tr>
+        </table>
+        <hr class="pos-pdf-continuation-header-line">
+        <p class="pos-pdf-continuation-college-line">College of Engineering - {{ department_name }}</p>
+    </div>
+
+    {# ── COURSE TABLES — all flow continuously, no forced page breaks ── #}
+    <div class="pos-pdf-content">
         {% if grouped_items %}
             {% for group, courses in grouped_items.items %}
-                <table class="pos-pdf-table">
-                    <thead class="pos-pdf-table-header">
-                        <tr class="pos-pdf-year-row">
-                            <th colspan="5">
-                                {% if group.0 == 1 %}
-                                    FIRST YEAR
-                                {% elif group.0 == 2 %}
-                                    SECOND YEAR
-                                {% elif group.0 == 3 %}
-                                    THIRD YEAR
-                                {% elif group.0 == 4 %}
-                                    FOURTH YEAR
-                                {% elif group.0 == 5 %}
-                                    FIFTH YEAR
-                                {% elif group.0 == 6 %}
-                                    YEAR 6
-                                {% else %}
-                                    YEAR {{ group.0 }}
-                                {% endif %}
-                            </th>
-                        </tr>
-                        <tr class="pos-pdf-term-row">
-                            <th colspan="5">
-                                {% if group.1 == "first_sem" %}
-                                    First Semester
-                                {% elif group.1 == "second_sem" %}
-                                    Second Semester
-                                {% elif group.1 == "midterm" %}
-                                    Midterm
-                                {% else %}
-                                    {{ group.1 }}
-                                {% endif %}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th style="width: 15%;">Course<br>Code</th>
-                            <th style="width: 45%;">Course Title</th>
-                            <th style="width: 9%;">Unit/s</th>
-                            <th style="width: 19%;">Pre-requisite /<br>Co-requisite</th>
-                            <th style="width: 10%;">Grade</th>
-                        </tr>
-                    </thead>
 
-                    <tbody>
-                        {% for course in courses %}
+                <div class="pos-pdf-section-block">
+                    <div class="pos-pdf-section-header">
+                        {% if group.0 == 1 %}FIRST YEAR
+                        {% elif group.0 == 2 %}SECOND YEAR
+                        {% elif group.0 == 3 %}THIRD YEAR
+                        {% elif group.0 == 4 %}FOURTH YEAR
+                        {% elif group.0 == 5 %}FIFTH YEAR
+                        {% else %}YEAR {{ group.0 }}{% endif %}
+                    </div>
+
+                    <div class="pos-pdf-section-subheader">
+                        {% if group.1 == "first_sem" %}First Semester
+                        {% elif group.1 == "second_sem" %}Second Semester
+                        {% elif group.1 == "midterm" %}Midterm Semester
+                        {% else %}{{ group.1 }}{% endif %}
+                    </div>
+
+                    <table class="pos-pdf-table">
+                        <thead class="pos-pdf-table-header">
+                            <tr>
+                                <th style="width: 15%;">Course<br>Code</th>
+                                <th style="width: 45%;">Course Title</th>
+                                <th style="width: 9%;">Unit/s</th>
+                                <th style="width: 19%;">Pre-requisite /<br>Co-requisite</th>
+                                <th style="width: 10%;">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
                             <tr>
                                 <td class="pos-pdf-center">{{ course.course_code }}</td>
                                 <td>{{ course.course_title }}</td>
                                 <td class="pos-pdf-center">{{ course.units }}</td>
-                                <td>{{ course.requirement_text }}</td>
+                                <td>{{ course.requirement_text|cut:"Pre:"|cut:"Co:" }}</td>
                                 <td class="pos-pdf-center">{{ course.grade }}</td>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% endfor %}
+                            {# total units row #}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td class="pos-pdf-center pos-pdf-total-units">
+                                    {% with total=0 %}
+                                        {% for course in courses %}{% endfor %}
+                                        {{ courses|length }}
+                                    {% endwith %}
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
             {% endfor %}
         {% endif %}
-
-        <div class="pos-pdf-signature-section">
-            <p>Evaluated by:</p>
-            <p style="margin-bottom: 1cm;">Date:</p>
-
-            <p>Checked and Reviewed:</p>
-            <p style="margin-bottom: 1cm;">Date:</p>
-
-            <p>Approved by:</p>
-            <p style="margin-bottom: 1cm;">Date:</p>
-        </div>
     </div>
 
+    {# ── SIGNATURE SECTION ── #}
+    <div class="pos-pdf-signature-section">
+        <p>Evaluated by:</p>
+        <br>
+        <p></p>
+        <p>Date:</p>
+        <br>
+        <p>Checked and Reviewed:</p>
+        <br>
+
+        <p>Date:</p>
+        <br>
+        <p>Approved by:</p>
+        <br>
+        <p></p>
+        <p></p>
+        <p>Date:</p>
+    </div>
+
+    {# ── FOOTER (fixed at bottom of every page) ── #}
     <div class="pos-pdf-footer">
-        Leading Innovations, Transforming Lives, Building the Nation
+        <em><strong>Leading Innovations, Transforming Lives, Building the Nation</strong></em>
     </div>
+
 </div>

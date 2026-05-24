@@ -115,8 +115,6 @@ class StudentEmailNotificationTests(TestCase):
             is_active=True,
         )
 
-        # This should return False (email sending failed)
-        # Note: Actual failure depends on email configuration
         try:
             result = send_student_account_welcome_email(
                 user,

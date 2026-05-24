@@ -1,13 +1,132 @@
 <style>
+    /* ══════════════════════════════════════════════
+       PAGE SETUP
+    ══════════════════════════════════════════════ */
     @page {
-        size: 8in 13in;
-        margin: 0.75cm 0.75cm 2.2cm 0.75cm;
+        size: 8.5in 13in;
+        /* Top margin must be large enough to contain the running header.
+           The continuation header is ~3cm tall (logo + text rows + hr + college line).
+           We give it 3.5cm so there is a small gap between header and content. */
+        margin: 3.5cm 0.75cm 0 0.75cm;
+
+        @top-left{
+            content: element(continuationHeader);
+            vertical-align: bottom;
+            width: 100%;
+        }
     }
 
-    .pos-pdf-preview-actions {
-        margin-bottom: 1rem;
+    /* First page: full header is in normal flow, so we need almost no top margin */
+    @page :first {
+        margin-top: 0.3cm;
+
+        @top-center {
+            content: none;
+        }
     }
 
+    .pos-pdf-running-header {
+        position: running(continuationHeader);
+        width: 100%;
+        margin: 0 auto;
+        padding-bottom: 1 cm;
+    }
+
+    /* Hide in browser preview (not WeasyPrint) */
+    @media screen {
+        .pos-pdf-running-header {
+            display: none;
+        }
+    }
+
+    .pos-pdf-continuation-header-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0 auto;
+        table-layout: fixed;
+    }
+
+    .pos-pdf-continuation-logo-cell {
+        width: 19%;
+        text-align: center;
+        vertical-align: middle;
+        padding: 0;
+    }
+
+    .pos-pdf-continuation-logo-cell img {
+        width: 100px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .pos-pdf-continuation-header-text-cell {
+        width: 62%;
+        text-align: center;
+        vertical-align: middle;
+        padding: 0.3 0 0;
+    }
+
+    .pos-pdf-continuation-header-spacer-cell {
+        width: 19%;
+    }
+
+    .pos-pdf-continuation-republic {
+        font-size: 14px;
+        margin: 0;
+        line-height: 1;
+        letter-spacing: 2px;
+    }
+
+    .pos-pdf-continuation-bsu-name {
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .pos-pdf-continuation-national-engineering {
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        color: #d0112b;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .pos-pdf-continuation-campus {
+        font-size: 13px;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .pos-pdf-continuation-address,
+    .pos-pdf-continuation-contact {
+        font-size: 9px;
+        margin: 0;
+        line-height: 0.95;
+    }
+
+    .pos-pdf-continuation-header-line {
+        border: none;
+        border-top: 2.5pt solid #000000;
+        margin: 3px auto 2px;
+        width: 100%;
+    }
+
+    .pos-pdf-continuation-college-line {
+        font-size: 13px;
+        font-weight: bold;
+        text-align: left;
+        margin: 0 0 0.5cm;
+        padding-left: 0cm;
+    }
+
+    /* ══════════════════════════════════════════════
+       DOCUMENT BASE
+    ══════════════════════════════════════════════ */
     .pos-pdf-preview-scroll {
         overflow-x: auto;
         padding: 1rem 0 2rem;
@@ -43,11 +162,16 @@
         padding-bottom: 3.2cm;
     }
 
-    .pos-pdf-content {
+    /* ══════════════════════════════════════════════
+       FIRST-PAGE HEADER
+    ══════════════════════════════════════════════ */
+    .pos-pdf-page-header {
         width: 100%;
         margin: 0 auto;
         text-align: center;
         padding: 0.3cm 0.75cm 0 0.75cm;
+        page-break-after: avoid;
+        page-break-inside: avoid;
     }
 
     .pos-pdf-header-table {
@@ -135,13 +259,12 @@
         font-size: 13px;
         font-weight: bold;
         text-align: left;
-        margin: 0 0 0.2cm;
-        padding-left: 0.75cm;
+        margin: 0 0 0.5cm;
+        padding-left: 0cm;
     }
 
     .pos-pdf-export-body .pos-pdf-college-line {
         padding-left: 0;
-        text-align: center;
     }
 
     .pos-pdf-document-title {
@@ -149,7 +272,7 @@
         font-size: 15px;
         font-weight: bold;
         margin: 0.2cm 0;
-        line-height: 1.1;
+        line-height: 1.2;
     }
 
     .pos-pdf-student-info {
@@ -165,21 +288,62 @@
         text-align: left;
     }
 
-    .pos-pdf-student-info .pos-pdf-label-cell {
+    .pos-pdf-label-cell {
         text-align: left;
         font-weight: bold;
     }
 
-    .pos-pdf-export-body .pos-pdf-student-info .pos-pdf-label-cell {
+    /* ══════════════════════════════════════════════
+       CONTENT AREA — continuous flow, NO forced breaks
+    ══════════════════════════════════════════════ */
+    .pos-pdf-content {
+        width: 100%;
+        margin: 0 auto;
         text-align: center;
+        padding: 0.3cm 0.75cm 0 0.75cm;
     }
 
+    /* Each year/semester block: keep header + subheader + table together if possible */
+    .pos-pdf-section-block {
+        margin-bottom: 0.4cm;
+        page-break-inside: avoid;   /* try to keep whole block on one page */
+    }
+
+    .pos-pdf-section-header {
+        width: 85%;
+        margin: 0 auto 0;
+        font-size: 13px;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        padding: 2px 0;
+        border: 1px solid #000000;
+        background-color: #f9f9f9;
+        page-break-after: avoid;
+    }
+
+    .pos-pdf-section-subheader {
+        width: 85%;
+        margin: 0 auto 0;
+        font-size: 12px;
+        font-weight: bold;
+        text-align: center;
+        padding: 2px 0;
+        border: 1px solid #000000;
+        border-top: none;
+        background-color: #f9f9f9;
+        page-break-after: avoid;
+    }
+
+    /* ══════════════════════════════════════════════
+       COURSE TABLE
+    ══════════════════════════════════════════════ */
     .pos-pdf-table {
         width: 85%;
-        margin: 0.3cm auto 0.5cm;
+        margin: 0 auto 0;   /* no extra bottom gap; section-block margin handles it */
         border-collapse: collapse;
         font-size: 13px;
-        page-break-inside: avoid;
+        border-top: none;   /* merges flush with subheader */
     }
 
     .pos-pdf-table th,
@@ -199,23 +363,27 @@
         text-align: left;
     }
 
-    .pos-pdf-year-row th {
-        font-size: 14px;
-        padding: 2px 4px;
-        text-transform: uppercase;
-        font-weight: bold;
+    /* Suppress thead repeat on page breaks (WeasyPrint) */
+    .pos-pdf-table-header {
+        display: table-row-group;
     }
 
-    .pos-pdf-term-row th {
-        font-size: 13px;
-        padding: 1px 4px;
-        font-weight: bold;
+    .pos-pdf-table tbody tr {
+        page-break-inside: avoid;
     }
 
     .pos-pdf-center {
         text-align: center !important;
     }
 
+    .pos-pdf-total-units {
+        font-weight: bold;
+        border-top: 1px solid #000;
+    }
+
+    /* ══════════════════════════════════════════════
+       SIGNATURE SECTION
+    ══════════════════════════════════════════════ */
     .pos-pdf-signature-section {
         width: 85%;
         margin: 0.8cm auto 2.5cm;
@@ -228,11 +396,12 @@
     .pos-pdf-signature-section p {
         margin: 0;
         padding: 0;
-        color: #000000;
-        text-decoration: none;
         line-height: 1.5;
     }
 
+    /* ══════════════════════════════════════════════
+       FOOTER — fixed at bottom of every page
+    ══════════════════════════════════════════════ */
     .pos-pdf-footer {
         position: fixed;
         left: 0.75cm;
@@ -247,39 +416,28 @@
         line-height: 1.3;
     }
 
-    .pos-pdf-export-body .pos-pdf-footer {
-        position: fixed;
-        bottom: 0.4cm;
-    }
-
-    /* Prevent table headers from repeating on page breaks in WeasyPrint */
-    .pos-pdf-table-header {
-        display: table-row-group;
-    }
-    
-    /* Keep individual rows together when possible */
-    .pos-pdf-table tbody tr {
-        page-break-inside: avoid;
-    }
-
-    /* Ensure proper spacing in tables */
-    .pos-pdf-table tbody tr:first-child td {
-        padding-top: 3px;
-    }
-
-    /* Page break handling */
-    .pos-pdf-table + .pos-pdf-table {
-        margin-top: 0.4cm;
+    /* ══════════════════════════════════════════════
+       BROWSER PREVIEW — show a fake continuation header
+       so layout looks correct in the preview iframe too
+    ══════════════════════════════════════════════ */
+    @media screen {
+        /* Re-show running header only as a decorative guide in screen preview */
+        .pos-pdf-running-header-preview {
+            display: block;
+        }
     }
 
     @media print {
         .pos-pdf-document {
             page-break-after: always;
         }
-        
-        .pos-pdf-signature-section {
-            page-break-before: auto;
+
+        .pos-pdf-table {
+            page-break-inside: avoid;
+        }
+
+        .pos-pdf-section-block {
+            page-break-inside: avoid;
         }
     }
-</style>
 </style>

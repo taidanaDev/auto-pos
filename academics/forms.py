@@ -191,17 +191,12 @@ class CurriculumForm(forms.ModelForm):
             }),
             "total_units": forms.NumberInput(attrs={
                 "class": "form-control",
-                # FIX #2: Added min HTML attribute as a UX hint.
-                # Server-side enforcement is in clean_total_units() below.
                 "min": "1",
                 "placeholder": "Example: 183"
             }),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
-    # FIX #2: Added server-side range validation for total_units.
-    # The widget's min attribute is a browser hint only and can be bypassed —
-    # this ensures the value is always validated on the server.
     def clean_curriculum_code(self):
         curriculum_code = self.cleaned_data.get("curriculum_code", "").strip()
 
@@ -355,10 +350,6 @@ class CurriculumCourseForm(forms.ModelForm):
 
     def clean_year_level(self):
         year_level = self.cleaned_data.get("year_level")
-
-        # FIX #4: Added None guard before comparison. Previously, an empty
-        # submission caused a "NoneType < int" TypeError at runtime instead
-        # of a clean validation error being shown to the user.
         if year_level is None:
             raise ValidationError("Year level is required.")
 

@@ -27,7 +27,6 @@ class CustomUserAdmin(UserAdmin):
     )
     ordering = ("email",)
 
-    # ✅ ADD: mark auto fields as read-only
     readonly_fields = ("last_login", "created_at")
 
     fieldsets = (

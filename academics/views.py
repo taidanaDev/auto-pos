@@ -7,6 +7,7 @@ from django.db import transaction
 from django.shortcuts import render, redirect
 from django.db.models import Case, When, IntegerField
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 
 from accounts.models import User
 from .forms import (
@@ -119,23 +120,18 @@ def student_registration(request):
                     section_code=data["section_code"],
                     status=data["status"],
                 )
-
-            # Send welcome email with credentials (non-blocking)
-            # This is called after transaction.atomic() completes to ensure
-            # the student record is committed before sending email
+                
             send_student_account_welcome_email_async(
                 student_user,
                 data["sr_code"],
                 temporary_password
             )
 
-            # Return to success page with credentials
-            return render(request, "academics/student_registration_success.html", {
-                "student_email": data["email"],
-                "student_name": f"{data['first_name']} {data['last_name']}",
-                "sr_code": data["sr_code"],
-                "temporary_password": temporary_password,
-            })
+            messages.success(
+                request,
+                "Student registered successfully.",
+            )
+            return redirect("student_registration")
 
     else:
         form = ManualStudentRegistrationForm()
@@ -336,10 +332,6 @@ def input_grades(request):
 
     if request.method == "POST":
         school_year = request.POST.get("school_year", "").strip()
-
-        # ----------------------------------------------------------------
-        # FIX 8: Validate school_year format — any string previously passed.
-        # ----------------------------------------------------------------
         if not school_year:
             messages.error(request, "School year is required.")
             return render(request, "academics/input_grades.html", {
@@ -352,7 +344,6 @@ def input_grades(request):
                 request,
                 "School year must follow the format YYYY-YYYY (e.g. 2024-2025).",
             )
-            # FIX 6: Re-render instead of redirect to preserve entered data.
             return render(request, "academics/input_grades.html", {
                 **base_context,
                 "post_data": request.POST,
