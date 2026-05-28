@@ -359,7 +359,7 @@ class CurriculumCourseForm(forms.ModelForm):
         return year_level
 
     def clean_standing_requirement(self):
-        standing_requirement = self.cleaned_data.get("standing_requirement", "").strip()
+        standing_requirement = (self.cleaned_data.get("standing_requirement") or "").strip()
 
         if not standing_requirement:
             return standing_requirement  # optional field
