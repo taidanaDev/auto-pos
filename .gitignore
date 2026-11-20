@@ -5,3 +5,9 @@ __pycache__/
 db.sqlite3
 media/
 .DS_Store
+.venv/
+.env.*
+!.env.example
+/staticfiles/
+/db.sqlite3-*
+/.pytest_cache/
