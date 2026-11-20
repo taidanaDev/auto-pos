@@ -68,20 +68,15 @@ The scheduling loop runs up to 50 passes. See the [rearrangement notes](docs/POS
 
 | Browser screenshot | Capture status |
 | --- | --- |
-| Login |<img width="1919" height="1079" alt="Screenshot 2026-05-18 175433" src="https://github.com/user-attachments/assets/ab633dd0-2cb7-418a-97c6-72e022aa1da2" />
- |
-| Student dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201248" src="https://github.com/user-attachments/assets/2e4a4b17-3f85-473d-9cb1-6c7ce67d5a63" />
- |
-| Administrator dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 175503" src="https://github.com/user-attachments/assets/984e48dd-59b1-46d6-aab0-d27a83ed51bb" />
- |
-| Curriculum management | | Student dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201248" src="https://github.com/user-attachments/assets/2e4a4b17-3f85-473d-9cb1-6c7ce67d5a63" />. |
+| Login |<img width="1919" height="1079" alt="Screenshot 2026-05-18 175433" src="https://github.com/user-attachments/assets/ab633dd0-2cb7-418a-97c6-72e022aa1da2" />|
+| Student dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201248" src="https://github.com/user-attachments/assets/2e4a4b17-3f85-473d-9cb1-6c7ce67d5a63" />|
+| Administrator dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 175503" src="https://github.com/user-attachments/assets/984e48dd-59b1-46d6-aab0-d27a83ed51bb" /> |
+| Curriculum management | 
+| Student dashboard | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201248" src="https://github.com/user-attachments/assets/2e4a4b17-3f85-473d-9cb1-6c7ce67d5a63" />. |
 | Grade input | Placeholder. Capture the manual grade form with synthetic entries. |
-| POS rearrangement | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201404" src="https://github.com/user-attachments/assets/0f90afeb-76e5-4beb-93e5-68f440e3573a" />
- |
-| Generated study plan | <img width="1919" height="1079" alt="Screenshot 2026-05-18 214939" src="https://github.com/user-attachments/assets/71f531ec-c2ed-40ae-a81d-7aba81f71be7" />
- |
-| PDF preview | <img width="1919" height="1079" alt="Screenshot 2026-05-18 203309" src="https://github.com/user-attachments/assets/b47d7262-54c1-48ff-a337-4a746f052472" />
- |
+| POS rearrangement | <img width="1919" height="1079" alt="Screenshot 2026-05-18 201404" src="https://github.com/user-attachments/assets/0f90afeb-76e5-4beb-93e5-68f440e3573a" />|
+| Generated study plan | <img width="1919" height="1079" alt="Screenshot 2026-05-18 214939" src="https://github.com/user-attachments/assets/71f531ec-c2ed-40ae-a81d-7aba81f71be7" />|
+| PDF preview | <img width="1919" height="1079" alt="Screenshot 2026-05-18 203309" src="https://github.com/user-attachments/assets/b47d7262-54c1-48ff-a337-4a746f052472" />|
 
 ## Project structure
 
